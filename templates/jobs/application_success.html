@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Application Submitted - Social Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 550px; margin-top: 4rem; margin-bottom: 4rem;">
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 3rem 2.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.03); text-align: center;">
+        
+        <!-- Success Icon -->
+        <div style="width: 72px; height: 72px; margin: 0 auto 1.5rem; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-check-circle" style="color: #16a34a; font-size: 3rem;"></i>
+        </div>
+
+        <h1 style="color: var(--text-primary); font-size: 1.85rem; font-weight: 800; margin-bottom: 0.75rem; letter-spacing: -0.02em;">Application Submitted!</h1>
+        <p style="color: var(--text-secondary); font-size: 0.98rem; line-height: 1.6; margin-bottom: 2rem;">
+            Aapki application <strong>{{ application.job.title }}</strong> role ke liye <strong>{{ application.job.company.name }}</strong> ko safaltapoorvak bhej di gayi hai.
+        </p>
+
+        <!-- Summary box -->
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.25rem; text-align: left; margin-bottom: 2rem; border: 1px solid var(--border-color); font-size: 0.92rem; display: flex; flex-direction: column; gap: 0.55rem; color: var(--text-primary);">
+            <div>📌 <strong>Job Role:</strong> {{ application.job.title }}</div>
+            <div>🏢 <strong>Company:</strong> {{ application.job.company.name }}</div>
+            <div>👤 <strong>Applicant Name:</strong> {{ application.applicant_name }}</div>
+            <div>📧 <strong>Registered Email:</strong> {{ application.applicant_email }}</div>
+            <div>📅 <strong>Applied Date:</strong> {{ application.created_at|date:"d M Y, h:i A" }}</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <a href="{% url 'jobs:my_applications' %}" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                Track My Applications
+            </a>
+            <a href="{% url 'jobs:job_list' %}" style="padding: 0.75rem 1.5rem; background: transparent; color: var(--text-primary); text-decoration: none; border: 1px solid var(--border-color); border-radius: 8px; font-weight: 600;">
+                Browse Other Jobs
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+<div style="padding: 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px;">
+    <h3>
+        <a href="{% url 'jobs:job_detail' job.id %}" style="color: var(--accent-color); text-decoration: none;">
+            {{ job.title }}
+        </a>
+    </h3>
+    <p style="color: var(--text-primary); margin: 0.25rem 0;">{{ job.company.name }}</p>
+    <p style="color: var(--text-secondary); font-size: 0.875rem;">
+        <i class="fas fa-map-marker-alt"></i> {{ job.location }}
+        • {{ job.get_job_type_display }}
+    </p>
+</div>

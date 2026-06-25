@@ -1,0 +1,15 @@
+<div style="padding: 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px;">
+    <div style="display: flex; gap: 0.75rem; margin-bottom: 0.5rem;">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white;">
+            {{ post.author.username|first|upper }}
+        </div>
+        <div>
+            <span style="color: var(--text-primary); font-weight: 600;">{{ post.author.get_full_name }}</span>
+            <span style="color: var(--text-secondary); font-size: 0.875rem;"> • {{ post.created_at|timesince }} ago</span>
+        </div>
+    </div>
+    <p style="color: var(--text-primary); margin-left: 3.25rem;">{{ post.content|truncatewords:30 }}</p>
+    <div style="margin-left: 3.25rem; margin-top: 0.5rem;">
+        <a href="{% url 'feed:post_detail' post.id %}" style="color: var(--accent-color); text-decoration: none;">View Post →</a>
+    </div>
+</div>

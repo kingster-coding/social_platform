@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Notification Preferences - Social Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto;">
+    <h1 style="color: var(--text-primary); margin-bottom: 2rem;">
+        <i class="fas fa-cog"></i> Notification Preferences
+    </h1>
+    
+    <form method="post" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem;">
+        {% csrf_token %}
+        
+        <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Email Notifications</h3>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="email_likes" {% if preferences.email_likes %}checked{% endif %}>
+                <span style="color: var(--text-primary);">Likes on your posts</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="email_comments" {% if preferences.email_comments %}checked{% endif %}>
+                <span style="color: var(--text-primary);">Comments on your posts</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="email_follows" {% if preferences.email_follows %}checked{% endif %}>
+                <span style="color: var(--text-primary);">New followers</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="email_job_updates" {% if preferences.email_job_updates %}checked{% endif %}>
+                <span style="color: var(--text-primary);">Job application updates</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="email_webinar_reminders" {% if preferences.email_webinar_reminders %}checked{% endif %}>
+                <span style="color: var(--text-primary);">Webinar reminders</span>
+            </label>
+        </div>
+        
+        <h3 style="color: var(--text-primary); margin: 1.5rem 0 1rem;">In-App Notifications</h3>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="push_likes" {% if preferences.push_likes %}checked{% endif %}>
+                <span style="color: var(--text-primary);">Likes on your posts</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="push_comments" {% if preferences.push_comments %}checked{% endif %}>
+                <span style="color: var(--text-primary);">Comments on your posts</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="push_follows" {% if preferences.push_follows %}checked{% endif %}>
+                <span style="color: var(--text-primary);">New followers</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="push_job_updates" {% if preferences.push_job_updates %}checked{% endif %}>
+                <span style="color: var(--text-primary);">Job application updates</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="push_webinar_reminders" {% if preferences.push_webinar_reminders %}checked{% endif %}>
+                <span style="color: var(--text-primary);">Webinar reminders</span>
+            </label>
+        </div>
+        
+        <h3 style="color: var(--text-primary); margin: 1.5rem 0 1rem;">Email Digest</h3>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="daily_digest" {% if preferences.daily_digest %}checked{% endif %}>
+                <span style="color: var(--text-primary);">Daily digest email</span>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input type="checkbox" name="weekly_digest" {% if preferences.weekly_digest %}checked{% endif %}>
+                <span style="color: var(--text-primary);">Weekly digest email</span>
+            </label>
+        </div>
+        
+        <button type="submit" style="padding: 0.75rem 2rem; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+            Save Preferences
+        </button>
+    </form>
+</div>
+{% endblock %}

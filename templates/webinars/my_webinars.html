@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Webinars - Social Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 1.5rem; margin-bottom: 3rem;">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="color: var(--text-primary); font-size: 2rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 0.25rem;">My Webinars</h1>
+            <p style="color: var(--text-secondary);">Manage your hosted webinars or join registered online classes.</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="{% url 'webinars:host_dashboard' %}" style="padding: 0.75rem 1.5rem; background: var(--bg-secondary); color: var(--text-primary); text-decoration: none; border: 1px solid var(--border-color); border-radius: 10px; font-weight: 600;">
+                <i class="fas fa-chart-line" style="margin-right: 0.5rem;"></i> Host Analytics
+            </a>
+            <a href="{% url 'webinars:create' %}" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);">
+                <i class="fas fa-plus" style="margin-right: 0.5rem;"></i> Host a Webinar
+            </a>
+        </div>
+    </div>
+
+    <!-- Layout: Two Columns (Registered vs Hosted) -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+        
+        <!-- Left: Registered Webinars -->
+        <div>
+            <h2 style="color: var(--text-primary); font-size: 1.35rem; font-weight: 700; margin-bottom: 1.25rem; border-bottom: 2px solid var(--accent-color); padding-bottom: 0.5rem;">
+                Registered Events
+            </h2>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for reg in registered_webinars %}
+                    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--accent-color); display: block; margin-bottom: 0.25rem;">
+                            {{ reg.webinar.category.name|default:"General Category" }}
+                        </span>
+                        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.3;">
+                            <a href="{% url 'webinars:detail' reg.webinar.slug %}" style="color: inherit; text-decoration: none;">
+                                {{ reg.webinar.title }}
+                            </a>
+                        </h3>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                            📅 {{ reg.webinar.scheduled_at|date:"d M Y, h:i A" }} ({{ reg.webinar.timezone }})
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                            <span style="font-size: 0.8rem; background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600;">
+                                Status: {{ reg.get_status_display }}
+                            </span>
+                            <a href="{% url 'webinars:join' reg.webinar.slug %}" style="padding: 0.4rem 1rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">
+                                Join Room
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div style="text-align: center; padding: 3rem 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-secondary);">
+                        <i class="far fa-calendar-check" style="font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.7;"></i>
+                        <p>No registered webinars yet.</p>
+                        <a href="{% url 'webinars:list' %}" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9rem; margin-top: 0.5rem; display: inline-block;">Browse Webinars board</a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right: Hosted Webinars -->
+        <div>
+            <h2 style="color: var(--text-primary); font-size: 1.35rem; font-weight: 700; margin-bottom: 1.25rem; border-bottom: 2px solid var(--accent-color); padding-bottom: 0.5rem;">
+                Hosted Events
+            </h2>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for web in hosted_webinars %}
+                    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">
+                            Status: {{ web.get_status_display }}
+                        </span>
+                        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.3;">
+                            <a href="{% url 'webinars:detail' web.slug %}" style="color: inherit; text-decoration: none;">
+                                {{ web.title }}
+                            </a>
+                        </h3>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; display: flex; justify-content: space-between;">
+                            <span>📅 {{ web.scheduled_at|date:"d M Y" }}</span>
+                            <span>👥 {{ web.registration_count }} Registered</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                            <a href="{% url 'webinars:detail' web.slug %}" style="font-size: 0.85rem; color: var(--text-secondary); text-decoration: none; font-weight: 600;">
+                                View landing page
+                            </a>
+                            <a href="{% url 'webinars:join' web.slug %}" style="padding: 0.4rem 1rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">
+                                Launch Room
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div style="text-align: center; padding: 3rem 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-secondary);">
+                        <i class="fas fa-video-slash" style="font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.7;"></i>
+                        <p>No hosted webinars yet.</p>
+                        <a href="{% url 'webinars:create' %}" style="color: var(--accent-color); font-weight: 600; text-decoration: none; font-size: 0.9rem; margin-top: 0.5rem; display: inline-block;">Create a Webinar</a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

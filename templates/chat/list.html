@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages — Social Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-layout {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        height: calc(100vh - 60px);
+        overflow: hidden;
+        max-width: 1280px;
+        margin: 0 auto;
+        border-left: 1px solid var(--border-color);
+        border-right: 1px solid var(--border-color);
+    }
+    /* LEFT PANEL */
+    .chat-sidebar {
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        background: var(--card-bg);
+        overflow: hidden;
+    }
+    .chat-sidebar-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-shrink: 0;
+        background: var(--card-bg);
+    }
+    .chat-search-input {
+        width: 100%;
+        background: var(--hover-bg);
+        border: 1px solid transparent;
+        color: var(--text-primary);
+        border-radius: 10px;
+        padding: 0.55rem 1rem 0.55rem 2.2rem;
+        font-size: 0.875rem;
+        outline: none;
+        transition: border-color 0.15s;
+        box-sizing: border-box;
+    }
+    .chat-search-input:focus { border-color: var(--accent-color); background: var(--bg-primary); }
+    .chat-room-item {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.9rem 1.5rem;
+        cursor: pointer;
+        transition: background 0.15s;
+        border-bottom: 1px solid var(--border-color);
+        text-decoration: none;
+    }
+    .chat-room-item:hover { background: var(--hover-bg); }
+    .chat-room-item.active { background: rgba(24, 119, 242, 0.07); border-left: 3px solid var(--accent-color); }
+    .avatar-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+        color: white;
+        position: relative;
+    }
+    .online-dot {
+        position: absolute;
+        bottom: 2px; right: 2px;
+        width: 12px; height: 12px;
+        background: #22c55e;
+        border-radius: 50%;
+        border: 2px solid var(--card-bg);
+    }
+    .unread-badge {
+        background: var(--accent-color);
+        color: white;
+        border-radius: 50%;
+        min-width: 20px;
+        height: 20px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+        flex-shrink: 0;
+    }
+    /* RIGHT PANEL - empty state */
+    .chat-empty-panel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 1rem;
+        color: var(--text-secondary);
+        background: var(--bg-primary);
+    }
+    /* New DM button */
+    .new-dm-btn {
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        box-shadow: 0 3px 10px rgba(24,119,242,0.3);
+        transition: transform 0.15s;
+    }
+    .new-dm-btn:hover { transform: scale(1.1); }
+
+    /* Rooms list scroll */
+    .rooms-scroll {
+        overflow-y: auto;
+        flex: 1;
+    }
+    .rooms-scroll::-webkit-scrollbar { width: 4px; }
+    .rooms-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+
+    @media (max-width: 768px) {
+        .chat-layout { grid-template-columns: 1fr; }
+        .chat-empty-panel { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+
+    <!-- LEFT: Conversations List -->
+    <div class="chat-sidebar">
+        <!-- Header -->
+        <div class="chat-sidebar-header">
+            <h2 style="color: var(--text-primary); font-size: 1.25rem; font-weight: 900; margin: 0;">
+                💬 Messages
+            </h2>
+            <button class="new-dm-btn" onclick="document.getElementById('new-chat-modal').style.display='flex'" title="New Message">
+                <i class="fas fa-edit" style="font-size: 0.85rem;"></i>
+            </button>
+        </div>
+
+        <!-- Search -->
+        <div style="padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+            <div style="position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.8rem;"></i>
+                <input type="text" id="chat-search" placeholder="Search conversations..."
+                    class="chat-search-input" oninput="filterRooms(this.value)">
+            </div>
+        </div>
+
+        <!-- Rooms -->
+        <div class="rooms-scroll" id="rooms-list">
+            {% for room in rooms %}
+            <a href="{% url 'chat:room' room.id %}" class="chat-room-item" id="room-{{ room.id }}">
+                <!-- Avatar -->
+                <div class="avatar-circle"
+                    style="background: linear-gradient(135deg,
+                        {% cycle '#1877f2' '#6366f1' '#ec4899' '#f59e0b' '#10b981' '#ef4444' %},
+                        {% cycle '#6366f1' '#ec4899' '#f59e0b' '#10b981' '#ef4444' '#1877f2' %});">
+                    {% if room.room_type == 'direct' %}
+                        {% with room.participants.all as participants %}
+                            {% for p in participants %}
+                                {% if p != user %}
+                                    {% if p.avatar %}
+                                        <img src="{{ p.avatar.url }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                                    {% else %}
+                                        {{ p.username|first|upper }}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                        <div class="online-dot"></div>
+                    {% else %}
+                        <i class="fas fa-users" style="font-size: 1rem;"></i>
+                    {% endif %}
+                </div>
+
+                <!-- Room Info -->
+                <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+                        <span style="color: var(--text-primary); font-weight: {% if room.unread_count > 0 %}800{% else %}600{% endif %}; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">
+                            {{ room }}
+                        </span>
+                        <span style="color: var(--text-secondary); font-size: 0.72rem; flex-shrink: 0; margin-left: 0.5rem;">
+                            {% if room.last_message %}
+                                {{ room.last_message.created_at|timesince|truncatewords:1 }} ago
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <p style="color: {% if room.unread_count > 0 %}var(--text-primary){% else %}var(--text-secondary){% endif %}; font-size: 0.8rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; font-weight: {% if room.unread_count > 0 %}600{% else %}400{% endif %};">
+                            {% if room.last_message %}
+                                {% if room.last_message.sender == user %}You: {% endif %}
+                                {{ room.last_message.content|truncatechars:42 }}
+                            {% else %}
+                                <span style="font-style: italic; opacity: 0.6;">No messages yet</span>
+                            {% endif %}
+                        </p>
+                        {% if room.unread_count > 0 %}
+                        <span class="unread-badge">{{ room.unread_count }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div style="text-align: center; padding: 4rem 2rem; color: var(--text-secondary);">
+                <div style="font-size: 3.5rem; margin-bottom: 1rem;">💬</div>
+                <p style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem;">No conversations yet</p>
+                <p style="font-size: 0.85rem;">Start a chat with someone!</p>
+                <button onclick="document.getElementById('new-chat-modal').style.display='flex'"
+                    style="margin-top: 1.25rem; padding: 0.6rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem;">
+                    New Message
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- RIGHT: Empty state (room opens here on desktop, or redirect on mobile) -->
+    <div class="chat-empty-panel">
+        <div style="width: 90px; height: 90px; background: var(--hover-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
+            <i class="fas fa-comments" style="font-size: 2.5rem; color: var(--accent-color);"></i>
+        </div>
+        <h3 style="color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin: 0;">Select a conversation</h3>
+        <p style="font-size: 0.9rem; text-align: center; max-width: 260px; line-height: 1.6;">
+            Choose from your existing conversations or start a new one.
+        </p>
+        <button onclick="document.getElementById('new-chat-modal').style.display='flex'"
+            style="padding: 0.65rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(24,119,242,0.25);">
+            <i class="fas fa-edit" style="margin-right: 0.5rem;"></i> New Message
+        </button>
+    </div>
+</div>
+
+<!-- New Chat Modal -->
+<div id="new-chat-modal"
+    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: var(--card-bg); border-radius: 18px; padding: 2rem; max-width: 440px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.25); border: 1px solid var(--border-color);"
+        onclick="event.stopPropagation()">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="color: var(--text-primary); font-size: 1.15rem; font-weight: 800; margin: 0;">New Message</h3>
+            <button onclick="document.getElementById('new-chat-modal').style.display='none'"
+                style="background: var(--hover-bg); border: none; border-radius: 50%; width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer; color: var(--text-secondary);">✕</button>
+        </div>
+
+        <div style="position: relative; margin-bottom: 1.25rem;">
+            <i class="fas fa-search" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.85rem;"></i>
+            <input type="text" id="user-search-input" placeholder="Search people..."
+                style="width: 100%; background: var(--hover-bg); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 10px; padding: 0.65rem 1rem 0.65rem 2.2rem; outline: none; font-size: 0.9rem; box-sizing: border-box;"
+                oninput="searchUsers(this.value)">
+        </div>
+
+        <div id="user-search-results" style="max-height: 280px; overflow-y: auto;">
+            <p style="color: var(--text-secondary); font-size: 0.85rem; text-align: center; padding: 1.5rem 0;">
+                Type a name to search people...
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Close modal on backdrop click
+    document.getElementById('new-chat-modal').addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
+
+    // Filter conversations by name
+    function filterRooms(query) {
+        const items = document.querySelectorAll('.chat-room-item');
+        items.forEach(item => {
+            const name = item.querySelector('span').textContent.toLowerCase();
+            item.style.display = name.includes(query.toLowerCase()) ? 'flex' : 'none';
+        });
+    }
+
+    // Search users via API for new chat
+    let searchTimeout;
+    function searchUsers(query) {
+        clearTimeout(searchTimeout);
+        const results = document.getElementById('user-search-results');
+        if (!query.trim()) {
+            results.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;text-align:center;padding:1.5rem 0;">Type a name to search people...</p>';
+            return;
+        }
+        results.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;text-align:center;padding:1rem;">Searching...</p>';
+        searchTimeout = setTimeout(() => {
+            fetch(`/accounts/api/search-users/?q=${encodeURIComponent(query)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.users || data.users.length === 0) {
+                    results.innerHTML = '<p style="color:var(--text-secondary);font-size:0.85rem;text-align:center;padding:1.5rem 0;">No users found.</p>';
+                    return;
+                }
+                results.innerHTML = data.users.map(u => `
+                    <a href="/chat/start/${u.id}/"
+                        style="display:flex;align-items:center;gap:0.85rem;padding:0.8rem 0.5rem;text-decoration:none;border-radius:10px;transition:background 0.15s;"
+                        onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background=''">
+                        <div style="width:42px;height:42px;border-radius:50%;background:var(--accent-color);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;flex-shrink:0;">
+                            ${u.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div style="color:var(--text-primary);font-weight:700;font-size:0.9rem;">${u.full_name || u.username}</div>
+                            <div style="color:var(--text-secondary);font-size:0.78rem;">@${u.username}</div>
+                        </div>
+                        <i class="fas fa-paper-plane" style="margin-left:auto;color:var(--accent-color);font-size:0.85rem;"></i>
+                    </a>
+                `).join('');
+            })
+            .catch(() => {
+                results.innerHTML = '<p style="color:#dc2626;font-size:0.85rem;text-align:center;padding:1rem;">Error searching users.</p>';
+            });
+        }, 300);
+    }
+</script>
+{% endblock %}

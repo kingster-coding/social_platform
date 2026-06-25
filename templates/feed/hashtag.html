@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load hashtag_filters %}
+
+{% block title %}#{{ hashtag.name }} - Social Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 2rem auto;">
+
+    <!-- Header -->
+    <div style="margin-bottom: 2rem; padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;">
+        <h1 style="color: var(--accent-color); font-size: 2rem; margin-bottom: 0.5rem;">
+            #{{ hashtag.name }}
+        </h1>
+        <p style="color: var(--text-secondary);">
+            <span style="font-weight: 600; color: var(--text-primary);">{{ hashtag.post_count }}</span> results
+        </p>
+    </div>
+
+    {% if posts %}
+        <div style="margin-bottom: 1rem;">
+            <h2 style="color: var(--text-primary); font-size: 1.25rem;">Posts</h2>
+        </div>
+        <div style="display: grid; gap: 1.5rem; margin-bottom: 2rem;">
+            {% for post in posts %}
+                <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem;">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white;">
+                            {{ post.author.username|first|upper }}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-primary);">
+                                {{ post.author.get_full_name|default:post.author.username }}
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 0.875rem;">
+                                @{{ post.author.username }} - {{ post.created_at|timesince }} ago
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <p style="color: var(--text-primary); white-space: pre-wrap;">
+                            {{ post.content|hashtag_links }}
+                        </p>
+
+                        {% if post.image %}
+                            <img src="{{ post.image.url }}" style="max-width: 100%; border-radius: 8px; margin-top: 0.75rem;">
+                        {% endif %}
+                    </div>
+
+                    <div style="display: flex; gap: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
+                        <span style="color: var(--text-secondary);">
+                            <i class="far fa-heart"></i> {{ post.total_likes }}
+                        </span>
+                        <span style="color: var(--text-secondary);">
+                            <i class="far fa-comment"></i> {{ post.total_comments }}
+                        </span>
+                        <a href="{% url 'feed:post_detail' post.pk %}" style="color: var(--accent-color); text-decoration: none;">
+                            View Post ->
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if reels %}
+        <div style="margin-bottom: 1rem;">
+            <h2 style="color: var(--text-primary); font-size: 1.25rem;">Reels</h2>
+        </div>
+        <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+            {% for reel in reels %}
+                <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap;">
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem;">
+                                {{ reel.author.get_full_name|default:reel.author.username }}
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.75rem;">
+                                @{{ reel.author.username }} - {{ reel.created_at|timesince }} ago
+                            </div>
+                            <p style="color: var(--text-primary); white-space: pre-wrap; margin: 0;">
+                                {{ reel.caption|hashtag_links }}
+                            </p>
+                        </div>
+                        <a href="{% url 'reels:reel_detail' reel.pk %}" style="color: var(--accent-color); text-decoration: none; white-space: nowrap;">
+                            View Reel ->
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if not posts and not reels %}
+        <div style="text-align: center; padding: 3rem; background: var(--card-bg); border-radius: 12px;">
+            <p style="color: var(--text-secondary);">No posts or reels with #{{ hashtag.name }} yet.</p>
+            <a href="{% url 'feed:feed' %}" style="display: inline-block; margin-top: 1rem; padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 24px;">
+                Create a Post
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

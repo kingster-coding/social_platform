@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Premium Checkout - Social Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 4rem auto; padding: 2rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">💳</div>
+    <h2 style="color: var(--text-primary); font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: 800;">
+        Upgrade to Premium
+    </h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+        Get premium ad-free experience, early access features, and custom badges.
+    </p>
+
+    <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 1px dashed var(--accent-color);">
+        <div style="font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">
+            Subscription Plan
+        </div>
+        <div style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">
+            Monthly Premium Plan
+        </div>
+        <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-color);">
+            ₹299.00 <span style="font-size: 1rem; color: var(--text-secondary); font-weight: normal;">/ month</span>
+        </div>
+    </div>
+
+    <!-- MOCK RAZORPAY TRIGGERS BUTTON -->
+    <button id="pay-btn" onclick="startMockPayment()" style="width: 100%; padding: 1.1rem; background: #3399cc; color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 6px 15px rgba(51, 153, 204, 0.25); display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
+        <i class="fa-solid fa-credit-card"></i> Pay via Razorpay (Simulated)
+    </button>
+</div>
+
+<!-- MOCK RAZORPAY GATEWAY MODAL -->
+<div id="razorpay-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: #1e2432; color: white; width: 90%; max-width: 420px; border-radius: 12px; overflow: hidden; font-family: sans-serif; box-shadow: 0 15px 35px rgba(0,0,0,0.4);">
+        <!-- Modal Header -->
+        <div style="background: #11151f; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #273046;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="background: #3399cc; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem;">R</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 0.95rem;">Razorpay Checkout</div>
+                    <div style="font-size: 0.75rem; color: #727e96;">Test Mode</div>
+                </div>
+            </div>
+            <button onclick="closeModal()" style="background: none; border: none; color: #727e96; font-size: 1.2rem; cursor: pointer;">&times;</button>
+        </div>
+
+        <!-- Modal Content -->
+        <div id="modal-body" style="padding: 2rem; text-align: center;">
+            <div id="payment-step-1">
+                <div style="color: #3399cc; font-size: 1.8rem; font-weight: bold; margin-bottom: 0.5rem;">₹299.00</div>
+                <div style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 2rem;">Order ID: order_mock_{{ user.id }}_{{ price }}</div>
+
+                <div style="background: #273046; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; text-align: left; font-size: 0.9rem;">
+                    <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+                        <span style="color: #a0aec0;">User:</span>
+                        <span style="font-weight: 600;">{{ user.username }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #a0aec0;">Email:</span>
+                        <span style="font-weight: 600;">{{ user.email }}</span>
+                    </div>
+                </div>
+
+                <button onclick="executePayment()" style="width: 100%; padding: 1rem; background: #3399cc; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.2s;">
+                    Simulate Payment Success
+                </button>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="payment-step-2" style="display: none;">
+                <div style="border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #3399cc; border-radius: 50%; width: 48px; height: 48px; animation: spin 1s linear infinite; margin: 0 auto 1.5rem;"></div>
+                <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">Processing Payment...</h4>
+                <p style="font-size: 0.85rem; color: #a0aec0;">Do not refresh this screen or close the window.</p>
+            </div>
+
+            <!-- Success Checkmark -->
+            <div id="payment-step-3" style="display: none;">
+                <div style="background: #2f855a; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem; color: white;">
+                    ✓
+                </div>
+                <h4 style="font-size: 1.2rem; font-weight: 600; color: #48bb78; margin-bottom: 0.5rem;">Payment Successful!</h4>
+                <p style="font-size: 0.85rem; color: #a0aec0;">Activating premium features...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+    function startMockPayment() {
+        document.getElementById('razorpay-modal').style.display = 'flex';
+        document.getElementById('payment-step-1').style.display = 'block';
+        document.getElementById('payment-step-2').style.display = 'none';
+        document.getElementById('payment-step-3').style.display = 'none';
+    }
+
+    function closeModal() {
+        document.getElementById('razorpay-modal').style.display = 'none';
+    }
+
+    function executePayment() {
+        // Step 1 to 2
+        document.getElementById('payment-step-1').style.display = 'none';
+        document.getElementById('payment-step-2').style.display = 'block';
+
+        // Wait 1.5 seconds, then show success checkmark
+        setTimeout(() => {
+            document.getElementById('payment-step-2').style.display = 'none';
+            document.getElementById('payment-step-3').style.display = 'block';
+
+            // Wait 1.5 seconds, then submit callback
+            setTimeout(() => {
+                const formData = new FormData();
+                formData.append('razorpay_payment_id', 'pay_mock_' + Math.random().toString(36).substr(2, 9));
+                formData.append('razorpay_order_id', 'order_mock_' + Math.random().toString(36).substr(2, 9));
+                
+                fetch("{% url 'monetization:razorpay_callback' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        alert('Payment processing failed. Please try again.');
+                        closeModal();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error connecting to callback.');
+                    closeModal();
+                });
+            }, 1500);
+        }, 1500);
+    }
+</script>
+{% endblock %}

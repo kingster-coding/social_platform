@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Groups - Social Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 2rem auto;">
+    
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="color: var(--text-primary);">
+            <i class="fas fa-users"></i> Discover Groups
+        </h1>
+        <div>
+            <a href="{% url 'groups:my_groups' %}" style="margin-right: 1rem; color: var(--text-primary); text-decoration: none;">
+                <i class="fas fa-user-friends"></i> My Groups
+            </a>
+            <a href="{% url 'groups:create' %}" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px;">
+                <i class="fas fa-plus"></i> Create Group
+            </a>
+        </div>
+    </div>
+    
+    <!-- My Groups Section -->
+    {% if my_groups %}
+        <div style="margin-bottom: 2rem;">
+            <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Your Groups</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                {% for group in my_groups %}
+                    <a href="{% url 'groups:detail' group.slug %}" style="text-decoration: none;">
+                        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; text-align: center;">
+                            {% if group.icon %}
+                                <img src="{{ group.icon.url }}" style="width: 60px; height: 60px; border-radius: 12px;">
+                            {% else %}
+                                <div style="width: 60px; height: 60px; border-radius: 12px; background: var(--accent-color); margin: 0 auto; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">
+                                    {{ group.name|first|upper }}
+                                </div>
+                            {% endif %}
+                            <h4 style="color: var(--text-primary); margin-top: 0.5rem;">{{ group.name|truncatechars:20 }}</h4>
+                            <p style="color: var(--text-secondary); font-size: 0.875rem;">{{ group.member_count }} members</p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Search -->
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; margin-bottom: 2rem;">
+        <form method="get" style="display: flex; gap: 1rem;">
+            {{ search_form.query }}
+            {{ search_form.category }}
+            <button type="submit" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 6px;">
+                Search
+            </button>
+        </form>
+    </div>
+    
+    <!-- All Groups -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+        {% for group in groups %}
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
+                <!-- Cover -->
+                <div style="height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative;">
+                    {% if group.cover_image %}
+                        <img src="{{ group.cover_image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% endif %}
+                </div>
+                
+                <!-- Content -->
+                <div style="padding: 1rem;">
+                    <h3 style="margin-bottom: 0.5rem;">
+                        <a href="{% url 'groups:detail' group.slug %}" style="color: var(--text-primary); text-decoration: none;">
+                            {{ group.name }}
+                        </a>
+                    </h3>
+                    
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.875rem;">
+                        {{ group.description|truncatewords:15 }}
+                    </p>
+                    
+                    <div style="display: flex; gap: 1rem; color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
+                        <span><i class="fas fa-user"></i> {{ group.member_count }} members</span>
+                        <span><i class="fas {{ group.visibility|yesno:'fa-globe,fa-lock,fa-eye-slash' }}"></i> {{ group.get_visibility_display }}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary); font-size: 0.875rem;">
+                            <i class="fas fa-calendar"></i> {{ group.created_at|date:"M Y" }}
+                        </span>
+                        <a href="{% url 'groups:detail' group.slug %}" style="color: var(--accent-color); text-decoration: none;">
+                            View Group →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p style="color: var(--text-secondary);">No groups found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

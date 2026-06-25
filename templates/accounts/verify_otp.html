@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Email - Social Platform{% endblock %}
+
+{% block content %}
+<style>
+    /* Form styling */
+    input[name="otp"] {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 1.75rem;
+        letter-spacing: 0.5em;
+        text-align: center;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+        font-weight: 700;
+    }
+    input[name="otp"]::placeholder {
+        letter-spacing: normal;
+        font-size: 1.25rem;
+        font-weight: normal;
+        opacity: 0.5;
+    }
+    input[name="otp"]:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 4px rgba(24, 119, 242, 0.15);
+    }
+</style>
+
+<div style="min-height: calc(100vh - 70px); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; background: var(--bg-secondary);">
+    <div style="max-width: 450px; width: 100%;">
+        <!-- OTP Card -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center;">
+            <div style="margin-bottom: 2rem;">
+                <div style="width: 64px; height: 64px; margin: 0 auto 1.25rem; background: linear-gradient(135deg, var(--accent-color), #58a6ff); border-radius: 16px; display: flex; align-items: center; justify-content: center; transform: rotate(-10deg); box-shadow: 0 8px 18px rgba(24, 119, 242, 0.2);">
+                    <i class="fas fa-key" style="color: white; font-size: 1.5rem; transform: rotate(10deg);"></i>
+                </div>
+                <h1 style="color: var(--text-primary); font-size: 1.85rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.025em;">Verify Your Email</h1>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">
+                    Humne aapke email <strong style="color: var(--text-primary);">{{ user.email }}</strong> par ek 6-digit OTP bheja hai.
+                </p>
+            </div>
+
+            <form id="otp-form" method="post" novalidate>
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 1.5rem;">
+                    {{ form.otp }}
+                    {% if form.otp.errors %}
+                        {% for error in form.otp.errors %}
+                            <p style="color: #ef4444; font-size: 0.85rem; margin-top: 0.5rem;">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <button type="submit" style="width: 100%; padding: 1rem; background: var(--accent-color); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                    Verify Now
+                </button>
+            </form>
+
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                <span style="color: var(--text-secondary);">Didn't receive code?</span>
+                <a href="{% url 'accounts:resend_otp' %}" style="color: var(--accent-color); text-decoration: none; font-weight: 600; transition: all 0.2s;">
+                    Resend OTP?
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // AUTO-VERIFY FEATURE
+    const otpInput = document.querySelector('input[name="otp"]');
+    const otpForm = document.getElementById('otp-form');
+
+    if (otpInput) {
+        // Clear placeholder class to make input style consistent
+        otpInput.className = '';
+        
+        otpInput.addEventListener('input', function() {
+            // Remove non-numeric chars
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            // Submit form automatically if 6 digits are typed
+            if (this.value.length === 6) {
+                otpInput.disabled = true; 
+                otpInput.style.opacity = '0.5';
+                otpForm.submit();
+            }
+        });
+    }
+</script>
+{% endblock %}

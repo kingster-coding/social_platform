@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Host Dashboard - Webinars - Social Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 1.5rem; margin-bottom: 3rem;">
+    <!-- Back link -->
+    <a href="{% url 'webinars:my_webinars' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); margin-bottom: 1.5rem; font-weight: 600;">
+        <i class="fas fa-arrow-left"></i> Back to My Webinars
+    </a>
+
+    <!-- Header -->
+    <div style="margin-bottom: 2rem;">
+        <h1 style="color: var(--text-primary); font-size: 2rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 0.25rem;">Host Analytics Dashboard</h1>
+        <p style="color: var(--text-secondary);">Overview of your webinars performance, registrant conversion, and revenue metrics.</p>
+    </div>
+
+    <!-- Analytics Cards Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+        <!-- Card 1: Total Webinars -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+            <div style="width: 50px; height: 50px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                <i class="fas fa-video"></i>
+            </div>
+            <div>
+                <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Webinars Hosted</span>
+                <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-top: 0.15rem;">{{ total_webinars }}</h2>
+            </div>
+        </div>
+
+        <!-- Card 2: Total Registrations -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+            <div style="width: 50px; height: 50px; border-radius: 8px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                <i class="far fa-id-card"></i>
+            </div>
+            <div>
+                <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Registrations</span>
+                <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-top: 0.15rem;">{{ total_registrations }}</h2>
+            </div>
+        </div>
+
+        <!-- Card 3: Total Attendees -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+            <div style="width: 50px; height: 50px; border-radius: 8px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                <i class="fas fa-users"></i>
+            </div>
+            <div>
+                <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Attendees</span>
+                <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-top: 0.15rem;">{{ total_attendees }}</h2>
+            </div>
+        </div>
+
+        <!-- Card 4: Total Revenue -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+            <div style="width: 50px; height: 50px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                <i class="fas fa-indian-rupee-sign"></i>
+            </div>
+            <div>
+                <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Total Revenue</span>
+                <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary); margin-top: 0.15rem;">₹{{ total_revenue }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Webinar Stats List -->
+    <h2 style="color: var(--text-primary); font-size: 1.35rem; font-weight: 700; margin-bottom: 1.25rem;">
+        Performance Breakdown by Event
+    </h2>
+
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+            <thead>
+                <tr style="background: var(--hover-bg); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-weight: 700;">
+                    <th style="padding: 1rem;">Event Name</th>
+                    <th style="padding: 1rem;">Date</th>
+                    <th style="padding: 1rem; text-align: center;">Registrants</th>
+                    <th style="padding: 1rem; text-align: center;">Attendees</th>
+                    <th style="padding: 1rem; text-align: center;">Conv. Rate</th>
+                    <th style="padding: 1rem; text-align: right;">Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for web in hosted_webinars %}
+                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-primary);">
+                        <td style="padding: 1rem; font-weight: 700;">
+                            <a href="{% url 'webinars:detail' web.slug %}" style="color: inherit; text-decoration: none;">{{ web.title }}</a>
+                        </td>
+                        <td style="padding: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                            {{ web.scheduled_at|date:"d M Y" }}
+                        </td>
+                        <td style="padding: 1rem; text-align: center; font-weight: 600;">{{ web.reg_count }}</td>
+                        <td style="padding: 1rem; text-align: center; font-weight: 600;">{{ web.attended_count }}</td>
+                        <td style="padding: 1rem; text-align: center; font-weight: 600; color: var(--accent-color);">
+                            <!-- calculate conversion percentage -->
+                            {% if web.reg_count > 0 %}
+                                {{ web.attended_count|add:"0"|stringformat:"d" }} / {{ web.reg_count }}
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1rem; text-align: right; font-weight: 700; color: #16a34a;">
+                            {% if web.access_type == 'paid' %}
+                                ₹{{ web.price }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding: 3rem; text-align: center; color: var(--text-secondary);">
+                            No webinars hosted yet. Create one to populate this analytics dashboard.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

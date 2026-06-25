@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ webinar.title }} - Webinars - Social Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; margin-bottom: 4rem;">
+    <!-- Back link -->
+    <a href="{% url 'webinars:list' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); margin-bottom: 1.5rem; font-weight: 600;">
+        <i class="fas fa-arrow-left"></i> Back to Webinars List
+    </a>
+
+    <!-- Main Layout Grid -->
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 2rem; align-items: start;">
+        
+        <!-- Left Column: Details, Host, Ratings -->
+        <div>
+            <!-- Main Info Card -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
+                    <span style="background: var(--hover-bg); color: var(--accent-color); padding: 0.35rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700;">
+                        {{ webinar.category.name|default:"Webinar Event" }}
+                    </span>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 600;">
+                        {% if webinar.access_type == 'free' %}Free{% else %}Paid (₹{{ webinar.price }}){% endif %}
+                    </span>
+                </div>
+
+                <h1 style="color: var(--text-primary); font-size: 2.25rem; font-weight: 800; line-height: 1.25; margin-bottom: 1rem; letter-spacing: -0.02em;">
+                    {{ webinar.title }}
+                </h1>
+
+                <!-- Schedule info -->
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color);">
+                    <span>📅 <strong>Date:</strong> {{ webinar.scheduled_at|date:"d F Y (l)" }}</span>
+                    <span>⏰ <strong>Time:</strong> {{ webinar.scheduled_at|date:"h:i A" }} ({{ webinar.timezone }})</span>
+                    <span>⌛ <strong>Duration:</strong> {{ webinar.duration_minutes }} minutes</span>
+                    {% if webinar.spots_left > 0 %}
+                        <span>👥 <strong>Spots Available:</strong> Only {{ spots_left }} seats left!</span>
+                    {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="color: var(--text-primary); font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">About This Webinar</h3>
+                    <p style="color: var(--text-primary); line-height: 1.65; white-space: pre-wrap; font-size: 1rem;">
+                        {{ webinar.description }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Host Card -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.75rem;">
+                    {{ webinar.host.username|first|upper }}
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">Hosted By</span>
+                    <h3 style="color: var(--text-primary); font-size: 1.25rem; font-weight: 800; margin-bottom: 0.15rem;">
+                        {{ webinar.host.get_full_name|default:webinar.host.username }}
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem;">@{{ webinar.host.username }}</p>
+                </div>
+            </div>
+
+            <!-- Feedback & Ratings -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                    <h3 style="color: var(--text-primary); font-size: 1.25rem; font-weight: 700;">
+                        Attendee Reviews
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 0.35rem; color: #f59e0b; font-weight: 700; font-size: 1.1rem;">
+                        ★ <span>{{ avg_rating|stringformat:".1f" }} / 5.0</span>
+                    </div>
+                </div>
+
+                <!-- Rate Form -->
+                {% if user.is_authenticated and webinar.is_ended and not registration.certificate_issued %}
+                    <!-- Render Rating form optionally -->
+                    <form method="post" action="{% url 'webinars:rate' webinar.slug %}" style="margin-bottom: 2rem; background: var(--bg-secondary); padding: 1.25rem; border-radius: 12px;">
+                        {% csrf_token %}
+                        <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-primary);">Submit Your Review</h4>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.35rem;">Rating (1 to 5 Stars)</label>
+                            <select name="rating" style="padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); width: 100px; font-weight: 700;">
+                                <option value="5">5★</option>
+                                <option value="4">4★</option>
+                                <option value="3">3★</option>
+                                <option value="2">2★</option>
+                                <option value="1">1★</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <textarea name="review" rows="3" placeholder="Share your experience with this webinar..." style="width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color);"></textarea>
+                        </div>
+                        <button type="submit" style="padding: 0.5rem 1.25rem; background: var(--accent-color); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                            Submit Review
+                        </button>
+                    </form>
+                {% endif %}
+
+                <!-- Reviews list -->
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    {% for rate in ratings %}
+                        <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                                <span style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">{{ rate.user.username }}</span>
+                                <span style="color: #f59e0b; font-weight: bold; font-size: 0.95rem;">{{ rate.rating }}★</span>
+                            </div>
+                            <p style="color: var(--text-primary); font-size: 0.925rem; line-height: 1.4;">{{ rate.review }}</p>
+                        </div>
+                    {% empty %}
+                        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            <i class="far fa-star" style="font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.8;"></i>
+                            <p>No reviews yet.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Registration Card & Countdown -->
+        <aside style="position: sticky; top: 96px; display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Countdown timer (AlpineJS) -->
+            <div x-data="{
+                target: new Date('{{ webinar.scheduled_at|date:"Y-m-d H:i:s" }}').getTime(),
+                now: new Date().getTime(),
+                days: 0, hours: 0, minutes: 0, seconds: 0,
+                isPast: false,
+                update: function() {
+                    let diff = this.target - new Date().getTime();
+                    if (diff <= 0) {
+                        this.isPast = true;
+                        return;
+                    }
+                    this.days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    this.hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    this.minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    this.seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                }
+            }"
+            x-init="update(); setInterval(() => update(), 1000)"
+            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); text-align: center;">
+                <h4 style="font-size: 0.85rem; text-transform: uppercase; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.75rem;">Webinar Starts In</h4>
+                
+                <div x-show="!isPast" style="display: flex; justify-content: center; gap: 0.75rem;">
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);" x-text="days">0</div>
+                        <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase;">Days</div>
+                    </div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-secondary);">:</div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);" x-text="hours">0</div>
+                        <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase;">Hrs</div>
+                    </div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-secondary);">:</div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);" x-text="minutes">0</div>
+                        <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase;">Mins</div>
+                    </div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-secondary);">:</div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);" x-text="seconds">0</div>
+                        <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase;">Secs</div>
+                    </div>
+                </div>
+
+                <div x-show="isPast" style="font-size: 1.1rem; font-weight: 800; color: #16a34a; padding: 0.35rem 0;">
+                    Live Room Open / Ended
+                </div>
+            </div>
+
+            <!-- Registration Action Card -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); text-align: center;">
+                <h4 style="font-size: 0.85rem; text-transform: uppercase; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.75rem;">Webinar Status</h4>
+                
+                {% if user.is_authenticated %}
+                    {% if user == webinar.host %}
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Aap is webinar ke host hain.</p>
+                        <a href="{% url 'webinars:join' webinar.slug %}" style="display: block; padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; font-weight: 700; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);">
+                            Launch Live Room
+                        </a>
+                    {% elif is_registered %}
+                        <p style="color: #16a34a; font-size: 0.9rem; font-weight: 700; margin-bottom: 1.5rem;">
+                            <i class="fas fa-circle-check"></i> Registered Successfully!
+                        </p>
+                        <a href="{% url 'webinars:join' webinar.slug %}" style="display: block; padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; font-weight: 700; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);">
+                            Join Webinar Room
+                        </a>
+                    {% else %}
+                        {% if webinar.registration_open %}
+                            {% if webinar.is_full %}
+                                <p style="color: #dc2626; font-size: 0.95rem; font-weight: 700;">Registration Full</p>
+                            {% else %}
+                                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Secure your seat now before deadline.</p>
+                                <a href="{% url 'webinars:register' webinar.slug %}" style="display: block; padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; font-weight: 700; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);">
+                                    Register for Webinar
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <p style="color: #dc2626; font-size: 0.95rem; font-weight: 700;">Registration Closed</p>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'account_login' %}" style="display: block; padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; font-weight: 700;">
+                        Login to Register
+                    </a>
+                {% endif %}
+            </div>
+        </aside>
+
+    </div>
+</div>
+{% endblock %}

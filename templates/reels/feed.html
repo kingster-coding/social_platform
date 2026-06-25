@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reels - Social Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reels-container {
+        height: calc(100vh - 60px);
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+    }
+    
+    .reel-item {
+        height: calc(100vh - 60px);
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        position: relative;
+        background: #000;
+    }
+    
+    .reel-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .reel-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background: linear-gradient(transparent, rgba(0,0,0,0.7));
+        color: white;
+    }
+    
+    .reel-actions {
+        position: absolute;
+        right: 1rem;
+        bottom: 5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .reel-action-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.75rem;
+        cursor: pointer;
+        text-align: center;
+    }
+    
+    .reel-action-btn span {
+        display: block;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    /* Hide scrollbar */
+    .reels-container::-webkit-scrollbar {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reels-container">
+    {% for reel in reels %}
+        <div class="reel-item" id="reel-{{ reel.id }}">
+            <!-- Progress bar -->
+            <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.25); z-index: 20;">
+                <div class="reel-progress-bar" style="height: 100%; background: #fff; width: 0%; transition: width 0.1s linear;"></div>
+            </div>
+            <video class="reel-video"
+                   src="{{ reel.video.url }}"
+                   loop
+                   muted
+                   playsinline
+                   {% if forloop.first %}autoplay{% endif %}>
+            </video>
+            
+            <!-- Reel Info Overlay -->
+            <div class="reel-overlay">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center;">
+                        {{ reel.author.username|first|upper }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">{{ reel.author.username }}</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">{{ reel.title|default:reel.caption|truncatewords:10 }}</div>
+                    </div>
+                    <button style="margin-left: auto; padding: 0.25rem 1rem; background: transparent; color: white; border: 1px solid white; border-radius: 20px; cursor: pointer;">
+                        Follow
+                    </button>
+                </div>
+                
+                {% if reel.caption %}
+                    <p style="margin-bottom: 0.5rem;">{{ reel.caption }}</p>
+                {% endif %}
+                
+                {% if reel.audio_title %}
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+                        <i class="fas fa-music"></i>
+                        <span>{{ reel.audio_title }} • {{ reel.audio_artist|default:"Original Audio" }}</span>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="reel-actions">
+                <form hx-post="{% url 'reels:like' reel.pk %}" hx-target="find .like-count" hx-swap="innerHTML">
+                    {% csrf_token %}
+                    <button type="submit" class="reel-action-btn">
+                        <i class="far fa-heart"></i>
+                        <span class="like-count">{{ reel.like_count }}</span>
+                    </button>
+                </form>
+                
+                <a href="{% url 'reels:reel_detail' reel.pk %}" class="reel-action-btn" style="color: white; text-decoration: none;">
+                    <i class="far fa-comment"></i>
+                    <span>{{ reel.comment_count }}</span>
+                </a>
+                
+                <form hx-post="{% url 'reels:share' reel.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="reel-action-btn">
+                        <i class="fas fa-share"></i>
+                        <span>{{ reel.share_count }}</span>
+                    </button>
+                </form>
+                
+                <form hx-post="{% url 'reels:save' reel.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="reel-action-btn">
+                        <i class="far fa-bookmark"></i>
+                        <span>Save</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% empty %}
+        <div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: #000; color: white;">
+            <div style="text-align: center;">
+                <i class="fas fa-video" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                <h2>No reels yet</h2>
+                <p style="margin-bottom: 2rem;">Be the first to share a reel!</p>
+                <a href="{% url 'reels:upload' %}" style="padding: 0.75rem 2rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 20px;">
+                    Upload Reel
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Floating Upload Button -->
+<a href="{% url 'reels:upload' %}" style="position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px; background: var(--accent-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 16px rgba(24,119,242,0.4); z-index: 100; transition: transform 0.2s;"
+    onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    <i class="fas fa-plus" style="font-size: 1.5rem;"></i>
+</a>
+
+<!-- Mute Toggle Button -->
+<button id="mute-toggle" onclick="toggleMute()"
+    style="position: fixed; bottom: 2rem; left: 2rem; width: 50px; height: 50px; background: rgba(0,0,0,0.6); border: none; color: white; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 100; backdrop-filter: blur(4px); transition: background 0.2s;"
+    title="Toggle Mute">
+    <i class="fas fa-volume-mute" id="mute-icon"></i>
+</button>
+
+<script>
+    let isMuted = true;
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        document.querySelectorAll('.reel-video').forEach(v => { v.muted = isMuted; });
+        document.getElementById('mute-icon').className = isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+    }
+
+    // IntersectionObserver: auto-play when in view, pause when out
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const video = entry.target;
+            if (entry.isIntersecting) {
+                video.muted = isMuted;
+                video.play().catch(() => {});
+                // Update progress bar
+                video.addEventListener('timeupdate', () => {
+                    const bar = video.closest('.reel-item')?.querySelector('.reel-progress-bar');
+                    if (bar && video.duration) {
+                        bar.style.width = ((video.currentTime / video.duration) * 100) + '%';
+                    }
+                });
+            } else {
+                video.pause();
+            }
+        });
+    }, { threshold: 0.6 });
+
+    document.querySelectorAll('.reel-video').forEach(video => {
+        observer.observe(video);
+
+        // Tap to pause/play
+        video.addEventListener('click', () => {
+            const item = video.closest('.reel-item');
+            if (video.paused) {
+                video.play();
+                item?.querySelector('.reel-play-indicator')?.remove();
+            } else {
+                video.pause();
+                // Show pause indicator
+                if (!item?.querySelector('.reel-play-indicator')) {
+                    const ind = document.createElement('div');
+                    ind.className = 'reel-play-indicator';
+                    ind.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:4rem;color:rgba(255,255,255,0.85);pointer-events:none;animation:fadeout 0.6s forwards 0.5s;';
+                    ind.innerHTML = '⏸';
+                    item.appendChild(ind);
+                    setTimeout(() => ind.remove(), 1200);
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+    @keyframes fadeout { from { opacity: 1; } to { opacity: 0; } }
+</style>
+{% endblock %}

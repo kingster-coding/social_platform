@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Choose Monetization Option - Social Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 4rem auto; padding: 2rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="color: var(--accent-color); font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 800;">
+            Select Your Experience ⚙️
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+            Our startup offers three transparent ways to use the platform. Choose the option that fits you best. You can change this at any time in settings.
+        </p>
+    </div>
+
+    <form method="POST" action="{% url 'monetization:consent' %}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;">
+        {% csrf_token %}
+        
+        <!-- OPTION A: ADS -->
+        <label style="cursor: pointer; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 2rem; border: 2px solid var(--border-color); border-radius: 16px; background: var(--bg-secondary); transition: all 0.3s ease; text-align: center;">
+            <input type="radio" name="consent_type" value="ads" {% if user_consent.consent_type == 'ads' or not user_consent %}checked{% endif %} style="position: absolute; top: 1.5rem; right: 1.5rem; width: 20px; height: 20px; accent-color: var(--accent-color);">
+            <div>
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📺</div>
+                <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem; color: var(--text-primary);">Option A: Ad-Supported</h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.4;">
+                    Free forever. You will see ads in your feed. Standard data tracking for relevant ads.
+                </p>
+            </div>
+            <div style="margin-top: 1.5rem; font-weight: 700; color: var(--accent-color);">
+                ₹0.00 / Month
+            </div>
+        </label>
+
+        <!-- OPTION B: PREMIUM -->
+        <label style="cursor: pointer; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 2rem; border: 2px solid var(--accent-color); border-radius: 16px; background: var(--bg-secondary); transition: all 0.3s ease; text-align: center; box-shadow: 0 4px 15px rgba(45, 136, 255, 0.15);">
+            <input type="radio" name="consent_type" value="premium" {% if user_consent.consent_type == 'premium' %}checked{% endif %} style="position: absolute; top: 1.5rem; right: 1.5rem; width: 20px; height: 20px; accent-color: var(--accent-color);">
+            <div>
+                <div style="font-size: 3rem; margin-bottom: 1rem;">👑</div>
+                <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem; color: var(--text-primary);">Option B: Premium Ad-Free</h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.4;">
+                    Premium experience. Zero ads, priority support, verified badge, and exclusive early features.
+                </p>
+            </div>
+            <div style="margin-top: 1.5rem; font-weight: 700; color: var(--accent-color);">
+                ₹299.00 / Month
+            </div>
+        </label>
+
+        <!-- OPTION C: DATA -->
+        <label style="cursor: pointer; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 2rem; border: 2px solid var(--border-color); border-radius: 16px; background: var(--bg-secondary); transition: all 0.3s ease; text-align: center;">
+            <input type="radio" name="consent_type" value="data" {% if user_consent.consent_type == 'data' %}checked{% endif %} style="position: absolute; top: 1.5rem; right: 1.5rem; width: 20px; height: 20px; accent-color: var(--accent-color);">
+            <div>
+                <div style="font-size: 3rem; margin-bottom: 1rem;">💼</div>
+                <h3 style="font-size: 1.3rem; margin-bottom: 0.75rem; color: var(--text-primary);">Option C: Earn Credits</h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.4;">
+                    Sell anonymized data in exchange for platform wallet credits to register for webinars.
+                </p>
+            </div>
+            <div style="margin-top: 1.5rem; font-weight: 700; color: var(--accent-color);">
+                Earn Rewards
+            </div>
+        </label>
+
+        <div style="grid-column: 1 / -1; margin-top: 2rem; text-align: center;">
+            <button type="submit" style="padding: 1rem 3rem; background: var(--accent-color); color: #ffffff; font-size: 1.1rem; border: none; border-radius: 50px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 20px rgba(24, 119, 242, 0.3);">
+                Confirm & Continue
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

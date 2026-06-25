@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upload Reel — Social Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-zone {
+        border: 2px dashed var(--border-color);
+        border-radius: 16px;
+        padding: 3rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        background: var(--bg-primary);
+        position: relative;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+        border-color: var(--accent-color);
+        background: rgba(24, 119, 242, 0.04);
+    }
+    .upload-zone input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+    .field-label {
+        display: block;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        font-weight: 700;
+        margin-bottom: 0.45rem;
+        letter-spacing: 0.01em;
+    }
+    .form-input {
+        width: 100%;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.15s;
+        box-sizing: border-box;
+    }
+    .form-input:focus { border-color: var(--accent-color); }
+    .form-input::placeholder { color: var(--text-secondary); }
+    textarea.form-input { resize: vertical; min-height: 80px; }
+    select.form-input { appearance: none; cursor: pointer; }
+
+    /* Video preview */
+    #video-preview-wrap {
+        display: none;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #000;
+        max-height: 340px;
+        position: relative;
+    }
+    #video-preview-wrap video {
+        width: 100%;
+        max-height: 340px;
+        object-fit: contain;
+    }
+    #remove-video {
+        position: absolute;
+        top: 0.75rem; right: 0.75rem;
+        background: rgba(0,0,0,0.6);
+        border: none; border-radius: 50%;
+        width: 34px; height: 34px;
+        color: white; font-size: 1.1rem;
+        cursor: pointer; display: flex;
+        align-items: center; justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .upload-grid { grid-template-columns: 1fr !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto; padding: 0 1rem 4rem;">
+
+    <!-- Page Header -->
+    <div style="margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+        <a href="{% url 'reels:feed' %}" style="color: var(--text-secondary); text-decoration: none; font-size: 1.3rem; line-height: 1;">←</a>
+        <div>
+            <h1 style="color: var(--text-primary); font-size: 1.8rem; font-weight: 800; margin: 0;">🎬 Upload a Reel</h1>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.2rem;">Share your best moments with the world</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for msg in messages %}
+        <div style="padding: 0.85rem 1.2rem; border-radius: 10px; margin-bottom: 1.5rem; font-weight: 600; font-size: 0.9rem;
+            {% if msg.tags == 'error' %}background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;
+            {% else %}background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;{% endif %}">
+            {{ msg }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" id="reel-upload-form">
+        {% csrf_token %}
+
+        <div class="upload-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+
+            <!-- Left: Video Upload -->
+            <div>
+                <!-- Video Upload Zone -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="field-label">Video File *</label>
+                    <div class="upload-zone" id="upload-zone">
+                        <input type="file" name="video" id="video-input" accept="video/*" required onchange="previewVideo(this)">
+                        <div id="upload-placeholder">
+                            <div style="font-size: 3rem; margin-bottom: 0.75rem;">🎥</div>
+                            <div style="color: var(--text-primary); font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem;">Click to upload or drag & drop</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem;">MP4, MOV, AVI, WebM — max 500MB</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Preview -->
+                <div id="video-preview-wrap" style="margin-bottom: 1.5rem;">
+                    <video id="video-preview" controls></video>
+                    <button type="button" id="remove-video" onclick="removeVideo()" title="Remove video">✕</button>
+                </div>
+
+                <!-- Thumbnail -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="field-label">Thumbnail Image (optional)</label>
+                    <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 0.75rem 1rem; background: var(--bg-primary); display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                        <span style="font-size: 1.3rem;">🖼️</span>
+                        <div style="flex: 1; position: relative;">
+                            <input type="file" name="thumbnail" id="thumbnail-input" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" onchange="showThumbnailName(this)">
+                            <span id="thumbnail-label" style="color: var(--text-secondary); font-size: 0.9rem;">Choose thumbnail...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Reel Details -->
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+                <!-- Title -->
+                <div>
+                    <label class="field-label" for="{{ form.title.id_for_label }}">Title</label>
+                    <input type="text" name="title" id="{{ form.title.id_for_label }}"
+                        placeholder="Give your reel a catchy title..."
+                        class="form-input" value="{{ form.title.value|default:'' }}">
+                    {% for error in form.title.errors %}<p style="color:#dc2626;font-size:0.8rem;margin-top:0.2rem;">{{ error }}</p>{% endfor %}
+                </div>
+
+                <!-- Caption -->
+                <div>
+                    <label class="field-label" for="{{ form.caption.id_for_label }}">Caption</label>
+                    <textarea name="caption" id="{{ form.caption.id_for_label }}"
+                        placeholder="Write a caption... #hashtags supported 🏷️"
+                        class="form-input">{{ form.caption.value|default:'' }}</textarea>
+                    {% for error in form.caption.errors %}<p style="color:#dc2626;font-size:0.8rem;margin-top:0.2rem;">{{ error }}</p>{% endfor %}
+                </div>
+
+                <!-- Audio Title -->
+                <div>
+                    <label class="field-label" for="{{ form.audio_title.id_for_label }}">🎵 Audio / Song Name</label>
+                    <input type="text" name="audio_title" id="{{ form.audio_title.id_for_label }}"
+                        placeholder="e.g., Blinding Lights – The Weeknd"
+                        class="form-input" value="{{ form.audio_title.value|default:'' }}">
+                </div>
+
+                <!-- Privacy -->
+                <div>
+                    <label class="field-label" for="{{ form.privacy.id_for_label }}">👁️ Privacy</label>
+                    <select name="privacy" id="{{ form.privacy.id_for_label }}" class="form-input">
+                        <option value="public" {% if form.privacy.value == 'public' %}selected{% endif %}>🌍 Public — everyone can see</option>
+                        <option value="followers" {% if form.privacy.value == 'followers' %}selected{% endif %}>👥 Followers only</option>
+                        <option value="private" {% if form.privacy.value == 'private' %}selected{% endif %}>🔒 Private — only me</option>
+                    </select>
+                </div>
+
+                <!-- Tags -->
+                {% if form.tags %}
+                <div>
+                    <label class="field-label" for="{{ form.tags.id_for_label }}">🏷️ Tags</label>
+                    <input type="text" name="tags" id="{{ form.tags.id_for_label }}"
+                        placeholder="e.g., dance, comedy, travel"
+                        class="form-input" value="{{ form.tags.value|default:'' }}">
+                </div>
+                {% endif %}
+
+                <!-- Submit Buttons -->
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                    <button type="submit" name="publish" id="publish-btn"
+                        style="flex: 2; padding: 0.9rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 14px rgba(24,119,242,0.3); transition: opacity 0.15s;">
+                        🚀 Publish Reel
+                    </button>
+                    <button type="submit" name="save_draft"
+                        style="flex: 1; padding: 0.9rem; background: var(--hover-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: opacity 0.15s;">
+                        💾 Save Draft
+                    </button>
+                </div>
+
+                <p style="color: var(--text-secondary); font-size: 0.78rem; text-align: center;">
+                    By publishing, you agree to our community guidelines.
+                </p>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function previewVideo(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const url = URL.createObjectURL(file);
+        const videoEl = document.getElementById('video-preview');
+        videoEl.src = url;
+
+        document.getElementById('upload-placeholder').style.display = 'none';
+        document.getElementById('video-preview-wrap').style.display = 'block';
+        document.getElementById('upload-zone').style.borderColor = 'var(--accent-color)';
+    }
+
+    function removeVideo() {
+        const input = document.getElementById('video-input');
+        input.value = '';
+        document.getElementById('video-preview').src = '';
+        document.getElementById('video-preview-wrap').style.display = 'none';
+        document.getElementById('upload-placeholder').style.display = 'block';
+        document.getElementById('upload-zone').style.borderColor = '';
+    }
+
+    function showThumbnailName(input) {
+        const file = input.files[0];
+        const label = document.getElementById('thumbnail-label');
+        label.textContent = file ? file.name : 'Choose thumbnail...';
+        label.style.color = file ? 'var(--text-primary)' : 'var(--text-secondary)';
+    }
+
+    // Drag and drop
+    const zone = document.getElementById('upload-zone');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const input = document.getElementById('video-input');
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            input.files = dt.files;
+            previewVideo(input);
+        }
+    });
+
+    // Upload progress feedback
+    document.getElementById('reel-upload-form').addEventListener('submit', function() {
+        const btn = document.getElementById('publish-btn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Uploading...';
+        btn.style.opacity = '0.7';
+    });
+</script>
+{% endblock %}

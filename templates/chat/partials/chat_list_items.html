@@ -1,0 +1,44 @@
+{% for room in rooms %}
+    <a href="{% url 'chat:room' room.id %}" style="display: block; padding: 0.85rem; border-bottom: 1px solid var(--border-color); text-decoration: none; transition: background 0.2s; border-radius: 8px; margin-bottom: 0.5rem;" class="nav-link">
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; flex-shrink: 0;">
+                {% if room.room_type == 'direct' %}
+                    <i class="fas fa-user"></i>
+                {% else %}
+                    <i class="fas fa-users"></i>
+                {% endif %}
+            </div>
+            
+            <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                    <h4 style="color: var(--text-primary); margin: 0; font-size: 0.95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ room }}</h4>
+                    <span style="color: var(--text-secondary); font-size: 0.75rem; flex-shrink: 0;">
+                        {% if room.last_message %}
+                            {{ room.last_message.created_at|date:"M d" }}
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: 0.15rem;">
+                    <p style="color: var(--text-secondary); margin: 0; font-size: 0.80rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {% if room.last_message %}
+                            {{ room.last_message.content }}
+                        {% else %}
+                            No messages yet
+                        {% endif %}
+                    </p>
+                    
+                    {% if room.unread_count > 0 %}
+                        <span style="background: var(--accent-color); color: white; padding: 0.15rem 0.35rem; border-radius: 12px; font-size: 0.7rem; font-weight: bold; flex-shrink: 0;">
+                            {{ room.unread_count }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </a>
+{% empty %}
+    <p style="padding: 1.5rem; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+        No conversations yet.
+    </p>
+{% endfor %}

@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Social Platform{% endblock %}</title>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f0f2f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #65676b;
+            --accent-color: #1877f2;
+            --border-color: #dddfe2;
+            --card-bg: #ffffff;
+            --navbar-bg: #ffffff;
+            --hover-bg: #f0f2f5;
+        }
+
+        .dark-mode {
+            --bg-primary: #18191a;
+            --bg-secondary: #242526;
+            --text-primary: #e4e6eb;
+            --text-secondary: #b0b3b8;
+            --accent-color: #2d88ff;
+            --border-color: #3e4042;
+            --card-bg: #242526;
+            --navbar-bg: #242526;
+            --hover-bg: #3a3b3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background-color: var(--navbar-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-shell {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 220px minmax(320px, 1fr) auto;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--accent-color), #58a6ff);
+            box-shadow: 0 8px 18px rgba(24, 119, 242, 0.24);
+        }
+
+        .nav-center {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .nav-search {
+            position: relative;
+            max-width: 440px;
+            width: 100%;
+        }
+
+        .nav-search input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 2.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .nav-search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .nav-main-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.72rem 1rem;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link:focus-visible {
+            background: var(--hover-bg);
+            color: var(--text-primary);
+        }
+
+        .nav-link.active {
+            color: var(--accent-color);
+            background: color-mix(in srgb, var(--accent-color) 12%, transparent);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .nav-icon-button {
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .user-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            background: transparent;
+            padding: 0.35rem 0.7rem 0.35rem 0.35rem;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .htmx-indicator {
+            display: none;
+        }
+
+        .htmx-request .htmx-indicator,
+        .htmx-request.htmx-indicator {
+            display: inline;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile bottom navigation styles */
+        .mobile-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: var(--navbar-bg);
+            border-top: 1px solid var(--border-color);
+            display: none;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 999;
+            box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.08);
+            padding: 0 0.5rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .mobile-nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.65rem;
+            font-weight: 600;
+            gap: 0.2rem;
+            flex: 1;
+            height: 100%;
+            transition: color 0.2s ease, transform 0.1s ease;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .mobile-nav-link i {
+            font-size: 1.3rem;
+        }
+
+        .mobile-nav-link:active {
+            transform: scale(0.92);
+        }
+
+        .mobile-nav-link.active {
+            color: var(--accent-color);
+        }
+
+        /* 1. Mobile devices (small and large) */
+        @media (max-width: 768px) {
+            body {
+                padding-bottom: 75px; /* Space for the bottom navbar */
+            }
+
+            .container {
+                padding: 0.5rem;
+                max-width: 100%;
+            }
+
+            .desktop-only {
+                display: none !important;
+            }
+
+            .navbar {
+                padding: 0.6rem 0.85rem;
+            }
+
+            .navbar-shell {
+                grid-template-columns: auto 1fr;
+                gap: 0.5rem;
+            }
+
+            .nav-center .nav-main-links {
+                display: none !important;
+            }
+
+            .nav-right {
+                gap: 0.5rem;
+            }
+
+            .mobile-bottom-nav {
+                display: flex; /* Show the mobile bottom nav bar */
+            }
+        }
+
+        /* 2. Tablets (portrait and landscape) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .navbar-shell {
+                grid-template-columns: auto 1fr auto;
+                gap: 0.75rem;
+            }
+
+            .nav-main-links {
+                gap: 0.25rem;
+            }
+
+            .nav-link {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+            
+            .container {
+                max-width: 95%;
+            }
+        }
+
+        /* 3. Ultra-wide screens & 4K */
+        @media (min-width: 1920px) {
+            .container {
+                max-width: 1600px;
+            }
+            
+            .navbar-shell {
+                max-width: 1800px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-only {
+                display: none !important;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', openChat: false }"
+      x-init="$watch('darkMode', value => {
+          localStorage.setItem('darkMode', value);
+          document.body.classList.toggle('dark-mode', value);
+      })"
+      :class="{ 'dark-mode': darkMode }">
+
+    <nav class="navbar">
+        <div class="navbar-shell">
+            <div>
+                <a href="{% url 'feed:feed' %}" class="brand-link">
+                    <span class="brand-mark">
+                        <i class="fas fa-globe"></i>
+                    </span>
+                    <span>Social</span>
+                </a>
+            </div>
+
+            <div class="nav-center">
+                <div class="desktop-only nav-search" x-data="{
+                    query: '',
+                    results: [],
+                    showResults: false,
+                    search: function() {
+                        if (this.query.length < 2) {
+                            this.results = [];
+                            this.showResults = false;
+                            return;
+                        }
+                        fetch(`/search/quick/?q=${encodeURIComponent(this.query)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                this.results = data.results;
+                                this.showResults = true;
+                            });
+                    }
+                }">
+                    <form method="get" action="{% url 'search:search' %}" style="position: relative;">
+                        <input
+                            type="text"
+                            name="q"
+                            x-model="query"
+                            @input="search()"
+                            @focus="showResults = true"
+                            @click.away="showResults = false"
+                            placeholder="Search people, posts, jobs..."
+                        >
+                        <i class="fas fa-search nav-search-icon"></i>
+
+                        <div x-show="showResults && results.length > 0"
+                             style="position: absolute; top: 100%; left: 0; right: 0; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 0.5rem; max-height: 400px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                            <template x-for="result in results" :key="result.url">
+                                <a :href="result.url" style="display: block; padding: 0.75rem 1rem; text-decoration: none; border-bottom: 1px solid var(--border-color);">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white;">
+                                            <i :class="'fas fa-' + result.icon"></i>
+                                        </div>
+                                        <div>
+                                            <div style="color: var(--text-primary);" x-text="result.title"></div>
+                                            <div style="color: var(--text-secondary); font-size: 0.875rem;" x-text="result.subtitle"></div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </template>
+                            <a :href="`/search/?q=${query}`" style="display: block; padding: 0.75rem; text-align: center; color: var(--accent-color); text-decoration: none; font-weight: 600;">
+                                See all results ->
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                {% if user.is_authenticated %}
+                    <div class="nav-main-links">
+                        <a href="{% url 'feed:feed' %}" class="nav-link {% if request.resolver_match.namespace == 'feed' %}active{% endif %}">
+                            <i class="fas fa-house"></i>
+                            <span>Home</span>
+                        </a>
+                        <a href="{% url 'reels:feed' %}" class="nav-link {% if request.resolver_match.namespace == 'reels' %}active{% endif %}">
+                            <i class="fas fa-clapperboard"></i>
+                            <span>Reels</span>
+                        </a>
+                        <a href="{% url 'groups:list' %}" class="nav-link {% if request.resolver_match.namespace == 'groups' %}active{% endif %}">
+                            <i class="fas fa-user-group"></i>
+                            <span>Groups</span>
+                        </a>
+                        <a href="{% url 'jobs:job_list' %}" class="nav-link {% if request.resolver_match.namespace == 'jobs' %}active{% endif %}">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Jobs</span>
+                        </a>
+                        <a href="{% url 'research:paper_list' %}" class="nav-link {% if request.resolver_match.namespace == 'research' %}active{% endif %}">
+                            <i class="fas fa-microscope"></i>
+                            <span>Research</span>
+                        </a>
+                        <a href="{% url 'webinars:list' %}" class="nav-link {% if request.resolver_match.namespace == 'webinars' %}active{% endif %}">
+                            <i class="fas fa-video"></i>
+                            <span>Webinars</span>
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="nav-right">
+                {% if user.is_authenticated %}
+                    <button @click="openChat = !openChat" class="nav-icon-button" title="Chat">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                    <a href="{% url 'notifications:list' %}" class="nav-icon-button" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                    </a>
+                {% endif %}
+
+                <button @click="darkMode = !darkMode" class="nav-icon-button" title="Toggle theme">
+                    <i class="fas" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+                </button>
+
+                <div x-data="{ open: false }" style="position: relative;">
+                    <button @click="open = !open" class="user-trigger">
+                        <span class="user-avatar">
+                            {% if user.is_authenticated %}
+                                {{ user.username|first|upper }}
+                            {% else %}
+                                <i class="fas fa-user"></i>
+                            {% endif %}
+                        </span>
+                        <span style="color: var(--text-primary); font-weight: 600;" class="desktop-only">
+                            {% if user.is_authenticated %}
+                                {{ user.username }}
+                            {% else %}
+                                Guest
+                            {% endif %}
+                        </span>
+                        <i class="fas fa-chevron-down" style="color: var(--text-secondary); font-size: 0.75rem;"></i>
+                    </button>
+
+                    <div x-show="open"
+                         @click.away="open = false"
+                         x-transition:enter="fade-in"
+                         style="position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; min-width: 220px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000;">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'accounts:profile' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border-color);">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="{% url 'monetization:wallet' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border-color);">
+                                <i class="fas fa-wallet"></i> Rewards Wallet
+                            </a>
+                            <a href="{% url 'monetization:consent' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border-color);">
+                                <i class="fa-solid fa-coins"></i> Monetization Settings
+                            </a>
+                            <a href="{% url 'feed:saved_posts' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border-color);">
+                                <i class="fas fa-bookmark"></i> Saved Posts
+                            </a>
+                            <a href="{% url 'accounts:settings' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border-color);">
+                                <i class="fas fa-gear"></i> Settings
+                            </a>
+                            <a href="{% url 'account_logout' %}" style="display: block; padding: 0.75rem 1rem; color: #dc2626; text-decoration: none;">
+                                <i class="fas fa-right-from-bracket"></i> Logout
+                            </a>
+                        {% else %}
+                            <a href="{% url 'account_login' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border-color);">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                            <a href="{% url 'account_signup' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none;">
+                                <i class="fas fa-user-plus"></i> Sign Up
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        {% if messages %}
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+                 style="position: fixed; top: 88px; right: 20px; z-index: 1000; max-width: 350px;">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} fade-in"
+                         style="padding: 1rem; margin-bottom: 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            {% if message.tags == 'success' %}
+                                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                            {% elif message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle" style="color: #ef4444;"></i>
+                            {% elif message.tags == 'warning' %}
+                                <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+                            {% endif %}
+                            <span style="color: var(--text-primary);">{{ message }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <script>
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
+
+    <!-- Mobile Bottom Navigation (Instagram/Facebook Style) -->
+    {% if user.is_authenticated %}
+    <nav class="mobile-bottom-nav">
+        <a href="{% url 'feed:feed' %}" class="mobile-nav-link {% if request.resolver_match.namespace == 'feed' %}active{% endif %}">
+            <i class="fas fa-house"></i>
+            <span>Home</span>
+        </a>
+        <a href="{% url 'reels:feed' %}" class="mobile-nav-link {% if request.resolver_match.namespace == 'reels' %}active{% endif %}">
+            <i class="fas fa-clapperboard"></i>
+            <span>Reels</span>
+        </a>
+        <a href="{% url 'notifications:list' %}" class="mobile-nav-link {% if request.resolver_match.app_name == 'notifications' %}active{% endif %}">
+            <i class="fas fa-bell"></i>
+            <span>Alerts</span>
+        </a>
+        <button @click="openChat = !openChat" class="mobile-nav-link">
+            <i class="fas fa-envelope"></i>
+            <span>Chats</span>
+        </button>
+        <a href="{% url 'accounts:profile' %}" class="mobile-nav-link {% if request.resolver_match.namespace == 'accounts' %}active{% endif %}">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+    {% endif %}
+
+    <!-- Off-canvas Chat Drawer -->
+    <div x-show="openChat" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="translate-x-full"
+         style="position: fixed; top: 0; right: 0; width: 380px; max-width: 100vw; height: 100vh; background: var(--card-bg); border-left: 1px solid var(--border-color); box-shadow: -4px 0 25px rgba(0,0,0,0.15); z-index: 9999; display: flex; flex-direction: column;">
+        
+        <!-- Header -->
+        <div style="padding: 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="color: var(--text-primary); font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+                <i class="fas fa-envelope" style="color: var(--accent-color);"></i> Chats
+            </h3>
+            <button @click="openChat = false" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
+        </div>
+        
+        <!-- Content -->
+        <div style="flex: 1; overflow-y: auto; padding: 1rem;"
+             hx-get="{% url 'chat:list' %}?partial=1"
+             hx-trigger="intersect once"
+             hx-swap="innerHTML">
+            <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                <i class="fas fa-circle-notch fa-spin" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                <p>Loading conversations...</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="padding: 1rem; border-top: 1px solid var(--border-color); text-align: center; background: var(--bg-secondary);">
+            <a href="{% url 'chat:list' %}" style="color: var(--accent-color); font-weight: 700; text-decoration: none; font-size: 0.9rem;">
+                Open Full Messenger →
+            </a>
+        </div>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

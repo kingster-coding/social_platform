@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load hashtag_filters %}
+
+{% block title %}{{ reel.author.username }}'s Reel - Social Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        background: #000;
+        border-radius: 16px;
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        min-height: 600px;
+        max-height: calc(100vh - 120px);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    
+    .video-section {
+        background: #000;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-height: calc(100vh - 120px);
+    }
+    
+    .video-section video {
+        width: 100%;
+        height: 100%;
+        max-height: calc(100vh - 120px);
+        object-fit: contain;
+    }
+    
+    .sidebar-section {
+        background: var(--card-bg);
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid var(--border-color);
+        color: var(--text-primary);
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+    
+    .creator-header {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .comments-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+    }
+    
+    .comment-item {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        align-items: flex-start;
+    }
+    
+    .actions-bar {
+        padding: 1rem;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-around;
+        background: var(--hover-bg);
+    }
+    
+    .action-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .action-btn:hover {
+        color: var(--accent-color);
+    }
+    
+    .comment-form-box {
+        padding: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .comment-input-field {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        outline: none;
+    }
+    .comment-input-field:focus {
+        border-color: var(--accent-color);
+    }
+
+    @media (max-width: 768px) {
+        .detail-card {
+            grid-template-columns: 1fr;
+            max-height: none;
+        }
+        .sidebar-section {
+            border-left: none;
+            max-height: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+    <div class="detail-card">
+        <!-- Left: Video Player -->
+        <div class="video-section">
+            <video src="{{ reel.video.url }}" controls loop autoplay playsinline></video>
+            
+            <a href="{% url 'reels:feed' %}" style="position: absolute; top: 1rem; left: 1rem; color: white; background: rgba(0,0,0,0.6); padding: 0.5rem; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
+        
+        <!-- Right: Comments & Info Sidebar -->
+        <div class="sidebar-section">
+            <!-- Header -->
+            <div class="creator-header">
+                <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; flex-shrink: 0;">
+                    {{ reel.author.username|first|upper }}
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 700; color: var(--text-primary);">
+                        {{ reel.author.get_full_name|default:reel.author.username }}
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                        @{{ reel.author.username }} • {{ reel.created_at|timesince }} ago
+                    </div>
+                </div>
+                {% if user.is_authenticated and user != reel.author %}
+                    <form hx-post="{% url 'research:follow_researcher' reel.author.username %}" hx-swap="none">
+                        {% csrf_token %}
+                        <button type="submit" style="padding: 0.4rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                            Follow
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+            
+            <!-- Description -->
+            <div style="padding: 1rem; border-bottom: 1px solid var(--border-color);">
+                {% if reel.title %}
+                    <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">{{ reel.title }}</h3>
+                {% endif %}
+                <p style="white-space: pre-wrap; line-height: 1.55; color: var(--text-primary);">{{ reel.caption|hashtag_links }}</p>
+                
+                {% if reel.audio_title %}
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; padding: 0.35rem 0.75rem; background: var(--hover-bg); border-radius: 20px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <i class="fas fa-music"></i>
+                        <span>{{ reel.audio_title }} • {{ reel.audio_artist|default:"Original Audio" }}</span>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Actions -->
+            <div class="actions-bar">
+                <form hx-post="{% url 'reels:like' reel.pk %}" hx-target="find .like-count" hx-swap="innerHTML">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn">
+                        <i class="far fa-heart"></i>
+                        <span class="like-count">{{ reel.like_count }}</span> Likes
+                    </button>
+                </form>
+                
+                <span class="action-btn">
+                    <i class="far fa-comment"></i>
+                    <span>{{ reel.comment_count }}</span> Comments
+                </span>
+                
+                <form hx-post="{% url 'reels:share' reel.pk %}" hx-target="find .share-count" hx-swap="innerHTML">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn">
+                        <i class="fas fa-share"></i>
+                        <span class="share-count">{{ reel.share_count }}</span> Shares
+                    </button>
+                </form>
+                
+                <form hx-post="{% url 'reels:save' reel.pk %}" hx-swap="none">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn">
+                        <i class="far fa-bookmark"></i>
+                        <span>{% if user_saved %}Saved{% else %}Save{% endif %}</span>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Comments Scroll Area -->
+            <div class="comments-area">
+                {% for comment in comments %}
+                    <div class="comment-item">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.85rem; flex-shrink: 0;">
+                            {{ comment.user.username|first|upper }}
+                        </div>
+                        <div style="flex: 1; background: var(--bg-secondary); padding: 0.75rem; border-radius: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                                <span style="font-weight: 700; font-size: 0.9rem;">{{ comment.user.username }}</span>
+                                <span style="font-size: 0.75rem; color: var(--text-secondary);">{{ comment.created_at|timesince }} ago</span>
+                            </div>
+                            <p style="font-size: 0.95rem; line-height: 1.4; color: var(--text-primary);">{{ comment.content }}</p>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                        <i class="far fa-comments" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                        <p>No comments yet. Start the conversation!</p>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Comment Input -->
+            {% if reel.allow_comments %}
+                <div class="comment-form-box">
+                    <form method="post" action="{% url 'reels:add_comment' reel.pk %}">
+                        {% csrf_token %}
+                        <div style="display: flex; gap: 0.75rem; align-items: center;">
+                            <div style="flex: 1;">
+                                {{ comment_form.content }}
+                            </div>
+                            <button type="submit" style="padding: 0.6rem 1.25rem; background: var(--accent-color); color: white; border: none; border-radius: 20px; font-weight: 600; cursor: pointer;">
+                                Send
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

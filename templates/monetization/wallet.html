@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}My Rewards Wallet - Social Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 3rem auto; padding: 2rem;">
+    <!-- HEADER -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+        <div>
+            <h1 style="color: var(--text-primary); font-size: 1.8rem; font-weight: 800; margin-bottom: 0.25rem;">
+                My Rewards Wallet 💰
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                Track your platform credits and data-sharing incentives.
+            </p>
+        </div>
+        <a href="{% url 'monetization:consent' %}" style="padding: 0.6rem 1.2rem; background: var(--hover-bg); border: 1px solid var(--border-color); color: var(--text-primary); text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem;">
+            Change Preference
+        </a>
+    </div>
+
+    <!-- WALLET STATE CHECK -->
+    {% if is_data_opt_in %}
+        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
+            <!-- Balance Card -->
+            <div style="background: linear-gradient(135deg, var(--accent-color), #58a6ff); border-radius: 20px; padding: 2rem; color: white; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 8px 25px rgba(24, 119, 242, 0.25); min-height: 220px;">
+                <div>
+                    <div style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; opacity: 0.8; font-weight: bold; margin-bottom: 0.5rem;">
+                        Available Balance
+                    </div>
+                    <div style="font-size: 2.5rem; font-weight: 800;">
+                        ₹{{ credits|floatformat:2 }}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; opacity: 0.9; margin-bottom: 0.25rem;">
+                        Option C Opt-In Active
+                    </div>
+                    <div style="font-size: 0.75rem; opacity: 0.7;">
+                        Data points shared: 42
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction List -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+                <h3 style="color: var(--text-primary); font-size: 1.1rem; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                    Recent Transactions
+                </h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Tx 1 -->
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem;">Anonymized Profile Survey Reward</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Today, 11:32 AM</div>
+                        </div>
+                        <div style="color: #48bb78; font-weight: 700; font-size: 0.95rem;">+ ₹50.00</div>
+                    </div>
+                    
+                    <!-- Tx 2 -->
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem;">Webinar Ads Watch Bonus</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Yesterday, 04:15 PM</div>
+                        </div>
+                        <div style="color: #48bb78; font-weight: 700; font-size: 0.95rem;">+ ₹20.00</div>
+                    </div>
+
+                    <!-- Tx 3 -->
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem;">Research Paper Interest Match Reward</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">20 Jun, 02:40 PM</div>
+                        </div>
+                        <div style="color: #48bb78; font-weight: 700; font-size: 0.95rem;">+ ₹50.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Non-opted-in CTA -->
+        <div style="text-align: center; padding: 4rem 2rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px;">
+            <div style="font-size: 4.5rem; margin-bottom: 1.5rem;">🔒</div>
+            <h2 style="color: var(--text-primary); font-size: 1.5rem; font-weight: 800; margin-bottom: 0.75rem;">
+                Unlock Your Rewards Wallet
+            </h2>
+            <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 2rem; line-height: 1.5; font-size: 0.95rem;">
+                Currently, your rewards wallet is locked because you have not selected Option C. Enable data incentive matching to start earning wallet credits.
+            </p>
+            <a href="{% url 'monetization:consent' %}" style="display: inline-block; padding: 0.85rem 2.2rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 50px; font-weight: 700; box-shadow: 0 6px 18px rgba(24, 119, 242, 0.2);">
+                Opt-in to Option C & Earn
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load hashtag_filters %}
+
+{% block title %}Post by {{ post.author.username }} - Social Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 2rem auto;">
+    
+    <!-- Back Button -->
+    <a href="{% url 'feed:feed' %}" style="color: var(--text-secondary); text-decoration: none; margin-bottom: 1rem; display: inline-block;">
+        <i class="fas fa-arrow-left"></i> Back to Feed
+    </a>
+    
+    <!-- Post -->
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem;">
+        
+        <!-- Post Header -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+            <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
+                {{ post.author.username|first|upper }}
+            </div>
+            <div>
+                <div style="font-weight: 600; color: var(--text-primary); font-size: 1.1rem;">
+                    {{ post.author.get_full_name }}
+                </div>
+                <div style="color: var(--text-secondary); font-size: 0.875rem;">
+                    @{{ post.author.username }} • {{ post.created_at|timesince }} ago
+                </div>
+            </div>
+        </div>
+        
+        <!-- Post Content -->
+        <div style="margin-bottom: 1.5rem;">
+            <p style="color: var(--text-primary); font-size: 1.1rem; white-space: pre-wrap;">{{ post.content|hashtag_links }}</p>
+            
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="Post image" style="max-width: 100%; border-radius: 8px; margin-top: 1rem;">
+            {% endif %}
+            
+            {% if post.video %}
+                <video controls style="max-width: 100%; border-radius: 8px; margin-top: 1rem;">
+                    <source src="{{ post.video.url }}" type="video/mp4">
+                </video>
+            {% endif %}
+        </div>
+        
+        <!-- Post Stats -->
+        <div style="display: flex; gap: 1.5rem; padding: 1rem 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+            <span style="color: var(--text-secondary);"><i class="far fa-thumbs-up"></i> {{ post.total_likes }} likes</span>
+            <span style="color: var(--text-secondary);"><i class="far fa-comment"></i> {{ post.total_comments }} comments</span>
+            <span style="color: var(--text-secondary);"><i class="fas fa-share"></i> {{ post.total_shares }} shares</span>
+            <span style="color: var(--text-secondary);"><i class="far fa-eye"></i> {{ post.view_count }} views</span>
+        </div>
+        
+        <!-- Comment Form -->
+        <div style="margin: 1.5rem 0;">
+            <form method="post" action="{% url 'feed:add_comment' post.pk %}">
+                {% csrf_token %}
+                <div style="display: flex; gap: 0.75rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white;">
+                        {{ user.username|first|upper }}
+                    </div>
+                    <div style="flex: 1;">
+                        {{ comment_form.content }}
+                    </div>
+                    <button type="submit" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 20px; cursor: pointer;">
+                        Post
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Comments List -->
+        <div>
+            <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Comments ({{ post.total_comments }})</h3>
+            
+            {% for comment in post.comments.all %}
+                {% if not comment.parent %}
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="display: flex; gap: 0.75rem;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.875rem;">
+                                {{ comment.user.username|first|upper }}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 12px;">
+                                    <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">
+                                        {{ comment.user.get_full_name }}
+                                    </div>
+                                    <p style="color: var(--text-primary);">{{ comment.content }}</p>
+                                </div>
+                                <div style="display: flex; gap: 1rem; margin-top: 0.25rem; padding-left: 0.5rem;">
+                                    <span style="color: var(--text-secondary); font-size: 0.875rem;">{{ comment.created_at|timesince }} ago</span>
+                                    <button onclick="document.getElementById('reply-form-{{ comment.id }}').style.display='block'" 
+                                            style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem;">
+                                        Reply
+                                    </button>
+                                </div>
+                                
+                                <!-- Reply Form (Hidden by default) -->
+                                <div id="reply-form-{{ comment.id }}" style="display: none; margin-top: 0.75rem;">
+                                    <form method="post" action="{% url 'feed:reply_comment' post.pk comment.id %}">
+                                        {% csrf_token %}
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            {{ comment_form.content }}
+                                            <button type="submit" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 20px; cursor: pointer;">
+                                                Reply
+                                            </button>
+                                            <button type="button" onclick="this.closest('div').style.display='none'" 
+                                                    style="padding: 0.5rem 1rem; background: none; border: none; color: var(--text-secondary); cursor: pointer;">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                                
+                                <!-- Replies -->
+                                {% for reply in comment.replies.all %}
+                                    <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; margin-left: 2rem;">
+                                        <div style="width: 25px; height: 25px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem;">
+                                            {{ reply.user.username|first|upper }}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="background: var(--bg-secondary); padding: 0.5rem 0.75rem; border-radius: 12px;">
+                                                <span style="font-weight: 600; color: var(--text-primary);">{{ reply.user.get_full_name }}</span>
+                                                <p style="color: var(--text-primary); display: inline; margin-left: 0.5rem;">{{ reply.content }}</p>
+                                            </div>
+                                            <div style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.25rem;">
+                                                {{ reply.created_at|timesince }} ago
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No comments yet. Be the first to comment!</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

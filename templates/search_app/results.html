@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Search: {{ query }} - Social Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 2rem auto;">
+    
+    <!-- Search Header -->
+    <div style="margin-bottom: 2rem;">
+        <h1 style="color: var(--text-primary); margin-bottom: 1rem;">
+            <i class="fas fa-search"></i> Search Results
+        </h1>
+        
+        <form method="get" action="{% url 'search:search' %}" style="margin-bottom: 1.5rem;">
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search..." 
+                       style="flex: 1; padding: 0.75rem 1rem; border-radius: 24px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 1rem;">
+                <button type="submit" style="padding: 0.75rem 2rem; background: var(--accent-color); color: white; border: none; border-radius: 24px; cursor: pointer;">
+                    Search
+                </button>
+            </div>
+        </form>
+        
+        {% if query %}
+            <p style="color: var(--text-secondary);">
+                Showing results for "<strong style="color: var(--text-primary);">{{ query }}</strong>"
+            </p>
+        {% endif %}
+    </div>
+    
+    <!-- Tabs -->
+    <div style="border-bottom: 1px solid var(--border-color); margin-bottom: 2rem;">
+        <div style="display: flex; gap: 1.5rem;">
+            <a href="?q={{ query }}&tab=all" 
+               style="padding: 0.75rem 0; color: {% if active_tab == 'all' %}var(--accent-color){% else %}var(--text-secondary){% endif %}; text-decoration: none; border-bottom: 2px solid {% if active_tab == 'all' %}var(--accent-color){% else %}transparent{% endif %};">
+                All
+            </a>
+            <a href="?q={{ query }}&tab=people" 
+               style="padding: 0.75rem 0; color: {% if active_tab == 'people' %}var(--accent-color){% else %}var(--text-secondary){% endif %}; text-decoration: none; border-bottom: 2px solid {% if active_tab == 'people' %}var(--accent-color){% else %}transparent{% endif %};">
+                People ({{ total_users|default:0 }})
+            </a>
+            <a href="?q={{ query }}&tab=posts" 
+               style="padding: 0.75rem 0; color: {% if active_tab == 'posts' %}var(--accent-color){% else %}var(--text-secondary){% endif %}; text-decoration: none; border-bottom: 2px solid {% if active_tab == 'posts' %}var(--accent-color){% else %}transparent{% endif %};">
+                Posts ({{ total_posts|default:0 }})
+            </a>
+            <a href="?q={{ query }}&tab=jobs" 
+               style="padding: 0.75rem 0; color: {% if active_tab == 'jobs' %}var(--accent-color){% else %}var(--text-secondary){% endif %}; text-decoration: none; border-bottom: 2px solid {% if active_tab == 'jobs' %}var(--accent-color){% else %}transparent{% endif %};">
+                Jobs ({{ total_jobs|default:0 }})
+            </a>
+            <a href="?q={{ query }}&tab=papers" 
+               style="padding: 0.75rem 0; color: {% if active_tab == 'papers' %}var(--accent-color){% else %}var(--text-secondary){% endif %}; text-decoration: none; border-bottom: 2px solid {% if active_tab == 'papers' %}var(--accent-color){%33% else %}transparent{% endif %};">
+                Papers ({{ total_papers|default:0 }})
+            </a>
+            <a href="?q={{ query }}&tab=groups" 
+               style="padding: 0.75rem 0; color: {% if active_tab == 'groups' %}var(--accent-color){% else %}var(--text-secondary){% endif %}; text-decoration: none; border-bottom: 2px solid {% if active_tab == 'groups' %}var(--accent-color){% else %}transparent{% endif %};">
+                Groups ({{ total_groups|default:0 }})
+            </a>
+        </div>
+    </div>
+    
+    <!-- Search Results -->
+    {% if query %}
+        
+        <!-- All Results Tab -->
+        {% if active_tab == 'all' %}
+            
+            <!-- Users -->
+            {% if users %}
+                <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 style="color: var(--text-primary);">People</h2>
+                        <a href="?q={{ query }}&tab=people" style="color: var(--accent-color); text-decoration: none;">See all →</a>
+                    </div>
+                    <div style="display: grid; gap: 0.75rem;">
+                        {% for user in users %}
+                            {% include 'search_app/partials/user_result.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Posts -->
+            {% if posts %}
+                <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 style="color: var(--text-primary);">Posts</h2>
+                        <a href="?q={{ query }}&tab=posts" style="color: var(--accent-color); text-decoration: none;">See all →</a>
+                    </div>
+                    <div style="display: grid; gap: 1rem;">
+                        {% for post in posts %}
+                            {% include 'search_app/partials/post_result.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Jobs -->
+            {% if jobs %}
+                <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 style="color: var(--text-primary);">Jobs</h2>
+                        <a href="?q={{ query }}&tab=jobs" style="color: var(--accent-color); text-decoration: none;">See all →</a>
+                    </div>
+                    <div style="display: grid; gap: 0.75rem;">
+                        {% for job in jobs %}
+                            {% include 'search_app/partials/job_result.html' %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if not users and not posts and not jobs and not papers and not groups %}
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-search" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                    <p style="color: var(--text-secondary);">No results found for "{{ query }}"</p>
+                </div>
+            {% endif %}
+            
+        {% elif active_tab == 'people' %}
+            <div style="display: grid; gap: 0.75rem;">
+                {% for user in users %}
+                    {% include 'search_app/partials/user_result.html' %}
+                {% empty %}
+                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No people found.</p>
+                {% endfor %}
+            </div>
+            
+        {% elif active_tab == 'posts' %}
+            <div style="display: grid; gap: 1rem;">
+                {% for post in posts %}
+                    {% include 'search_app/partials/post_result.html' %}
+                {% empty %}
+                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No posts found.</p>
+                {% endfor %}
+            </div>
+            
+        {% elif active_tab == 'jobs' %}
+            <div style="display: grid; gap: 1rem;">
+                {% for job in jobs %}
+                    {% include 'search_app/partials/job_result.html' %}
+                {% empty %}
+                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No jobs found.</p>
+                {% endfor %}
+            </div>
+            
+        {% elif active_tab == 'papers' %}
+            <div style="display: grid; gap: 1rem;">
+                {% for paper in papers %}
+                    {% include 'search_app/partials/paper_result.html' %}
+                {% empty %}
+                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No papers found.</p>
+                {% endfor %}
+            </div>
+            
+        {% elif active_tab == 'groups' %}
+            <div style="display: grid; gap: 1rem;">
+                {% for group in groups %}
+                    {% include 'search_app/partials/group_result.html' %}
+                {% empty %}
+                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No groups found.</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Pagination -->
+        {% if users.has_other_pages or posts.has_other_pages or jobs.has_other_pages %}
+            <div style="margin-top: 2rem; display: flex; justify-content: center;">
+                {% include 'search_app/partials/pagination.html' %}
+            </div>
+        {% endif %}
+        
+    {% else %}
+        <div style="text-align: center; padding: 4rem;">
+            <i class="fas fa-search" style="font-size: 4rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+            <h2 style="color: var(--text-primary); margin-bottom: 0.5rem;">Search for anything</h2>
+            <p style="color: var(--text-secondary);">Find people, posts, jobs, research papers, and more.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

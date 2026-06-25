@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Group Members - {{ group.name }} - Social Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin-top: 1.5rem; margin-bottom: 3rem;">
+    <!-- Back to Group Details -->
+    <a href="{% url 'groups:detail' group.slug %}" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); margin-bottom: 1.5rem; font-weight: 600;">
+        <i class="fas fa-arrow-left"></i> Back to Group Feed
+    </a>
+
+    <!-- Header -->
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+        <h1 style="color: var(--text-primary); font-size: 1.85rem; font-weight: 800; line-height: 1.3; margin-bottom: 0.25rem;">
+            Members of "{{ group.name }}"
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Total Active Members: <strong>{{ group.member_count }}</strong>
+        </p>
+    </div>
+
+    <!-- Members List -->
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for member in members %}
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+                        {{ member.user.username|first|upper }}
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.15rem;">
+                            {{ member.user.get_full_name|default:member.user.username }}
+                        </h3>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                            @{{ member.user.username }} • Joined {{ member.joined_at|date:"d M Y" }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Role and Admin Controls -->
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <span style="background: var(--bg-secondary); color: var(--text-primary); padding: 0.3rem 0.65rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">
+                        {{ member.get_role_display }}
+                    </span>
+
+                    <!-- Moderator controls -->
+                    {% if is_moderator and member.user != user %}
+                        <div style="display: flex; gap: 0.35rem; align-items: center;">
+                            <!-- Edit Role Form (Only group admins) -->
+                            {% if group.creator == user or member.role != 'admin' %}
+                                <form method="post" action="{% url 'groups:change_role' group.slug member.user.id %}" style="display: inline-flex; gap: 0.25rem;">
+                                    {% csrf_token %}
+                                    <select name="role" style="padding: 0.35rem; border-radius: 4px; font-size: 0.8rem; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                                        <option value="member" {% if member.role == 'member' %}selected{% endif %}>Member</option>
+                                        <option value="moderator" {% if member.role == 'moderator' %}selected{% endif %}>Moderator</option>
+                                        {% if group.creator == user %}
+                                            <option value="admin" {% if member.role == 'admin' %}selected{% endif %}>Admin</option>
+                                        {% endif %}
+                                    </select>
+                                    <button type="submit" style="padding: 0.35rem 0.5rem; background: var(--accent-color); color: white; border: none; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">Save</button>
+                                </form>
+                            {% endif %}
+
+                            <!-- Remove member button -->
+                            <form method="post" action="{% url 'groups:remove_member' group.slug member.user.id %}" onsubmit="return confirm('Remove this member?');">
+                                {% csrf_token %}
+                                <button type="submit" style="padding: 0.35rem 0.6rem; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                                    Remove
+                                </button>
+                            </form>
+
+                            <!-- Ban member form -->
+                            <form method="post" action="{% url 'groups:ban_member' group.slug member.user.id %}" onsubmit="return confirm('Ban this member?');">
+                                {% csrf_token %}
+                                <button type="submit" style="padding: 0.35rem 0.6rem; background: #000; color: white; border: none; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                                    Ban
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

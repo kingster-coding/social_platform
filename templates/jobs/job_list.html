@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Jobs — Find Your Next Opportunity{% endblock %}
+
+{% block extra_css %}
+<style>
+    .job-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.4rem 1.6rem;
+        transition: box-shadow 0.2s, border-color 0.2s;
+        cursor: pointer;
+    }
+    .job-card:hover {
+        box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+        border-color: var(--accent-color);
+    }
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.65rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .badge-remote   { background: #dcfce7; color: #166534; }
+    .badge-hybrid   { background: #fef9c3; color: #854d0e; }
+    .badge-onsite   { background: #fee2e2; color: #991b1b; }
+    .badge-fulltime { background: #dbeafe; color: #1e40af; }
+    .badge-parttime { background: #ede9fe; color: #5b21b6; }
+    .badge-contract { background: #ffedd5; color: #9a3412; }
+    .badge-intern   { background: #d1fae5; color: #065f46; }
+
+    .filter-btn {
+        padding: 0.45rem 1rem;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .filter-btn:hover, .filter-btn.active {
+        background: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+    .form-input {
+        width: 100%;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 10px;
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+        outline: none;
+        box-sizing: border-box;
+    }
+    .form-input:focus { border-color: var(--accent-color); }
+    select.form-input { appearance: none; cursor: pointer; }
+
+    .cat-link {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.55rem 0.75rem;
+        border-radius: 10px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: background 0.15s;
+    }
+    .cat-link:hover, .cat-link.active { background: var(--hover-bg); font-weight: 700; }
+
+    @media (max-width: 900px) {
+        .jobs-grid { grid-template-columns: 1fr !important; }
+        .search-grid { grid-template-columns: 1fr !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 0 1rem 4rem;">
+
+    <!-- Hero Header -->
+    <div style="text-align: center; padding: 3rem 1rem 2.5rem; background: linear-gradient(135deg, rgba(24,119,242,0.08), rgba(99,102,241,0.08)); border-radius: 20px; margin-bottom: 2rem; border: 1px solid var(--border-color);">
+        <h1 style="color: var(--text-primary); font-size: 2.2rem; font-weight: 900; margin-bottom: 0.5rem;">
+            💼 Find Your Next Opportunity
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 1rem; margin-bottom: 1.75rem;">
+            {{ jobs|length }}+ jobs from top companies — updated daily
+        </p>
+
+        <!-- Search Bar -->
+        <form method="get" id="search-form">
+            <div style="display: flex; gap: 0.75rem; max-width: 700px; margin: 0 auto; flex-wrap: wrap;">
+                <div style="flex: 2; min-width: 200px; position: relative;">
+                    <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.9rem;"></i>
+                    <input type="text" name="query" value="{{ request.GET.query }}"
+                        placeholder="Job title, skill, or company..."
+                        class="form-input" style="padding-left: 2.5rem; border-radius: 12px;">
+                </div>
+                <div style="flex: 1; min-width: 140px; position: relative;">
+                    <i class="fas fa-map-marker-alt" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.9rem;"></i>
+                    <input type="text" name="location" value="{{ request.GET.location }}"
+                        placeholder="Location..."
+                        class="form-input" style="padding-left: 2.5rem; border-radius: 12px;">
+                </div>
+                <button type="submit" style="padding: 0.65rem 1.75rem; background: var(--accent-color); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(24,119,242,0.3);">
+                    Search
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Quick Filter Chips -->
+    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.75rem; align-items: center;">
+        <span style="color: var(--text-secondary); font-size: 0.82rem; font-weight: 600;">Filter:</span>
+        <a href="?" class="filter-btn {% if not request.GET.location_type and not request.GET.job_type %}active{% endif %}">All</a>
+        <a href="?location_type=remote{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="filter-btn {% if request.GET.location_type == 'remote' %}active{% endif %}">🌍 Remote</a>
+        <a href="?location_type=hybrid{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="filter-btn {% if request.GET.location_type == 'hybrid' %}active{% endif %}">🏙️ Hybrid</a>
+        <a href="?location_type=onsite{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="filter-btn {% if request.GET.location_type == 'onsite' %}active{% endif %}">🏢 On-site</a>
+        <span style="color: var(--border-color);">|</span>
+        <a href="?job_type=full_time{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="filter-btn {% if request.GET.job_type == 'full_time' %}active{% endif %}">Full Time</a>
+        <a href="?job_type=part_time{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="filter-btn {% if request.GET.job_type == 'part_time' %}active{% endif %}">Part Time</a>
+        <a href="?job_type=contract{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="filter-btn {% if request.GET.job_type == 'contract' %}active{% endif %}">Contract</a>
+        <a href="?job_type=internship{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" class="filter-btn {% if request.GET.job_type == 'internship' %}active{% endif %}">Internship</a>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="jobs-grid" style="display: grid; grid-template-columns: 240px 1fr; gap: 1.75rem; align-items: start;">
+
+        <!-- LEFT: Category Sidebar -->
+        <aside style="position: sticky; top: 88px;">
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                <h3 style="color: var(--text-primary); font-size: 0.95rem; font-weight: 800; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color);">
+                    📂 Categories
+                </h3>
+                <a href="?" class="cat-link {% if not request.GET.category %}active{% endif %}">
+                    <span>All Jobs</span>
+                    <span style="font-size: 0.78rem; color: var(--text-secondary); background: var(--hover-bg); padding: 0.1rem 0.5rem; border-radius: 10px;">{{ jobs|length }}</span>
+                </a>
+                {% for cat in categories %}
+                <a href="?category={{ cat.id }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}"
+                   class="cat-link {% if request.GET.category == cat.id|stringformat:'s' %}active{% endif %}">
+                    <span>{{ cat.name }}</span>
+                    <span style="font-size: 0.78rem; color: var(--text-secondary); background: var(--hover-bg); padding: 0.1rem 0.5rem; border-radius: 10px;">{{ cat.job_count }}</span>
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Quick Links -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.25rem;">
+                <h3 style="color: var(--text-primary); font-size: 0.95rem; font-weight: 800; margin-bottom: 1rem;">
+                    🔗 Quick Links
+                </h3>
+                <a href="{% url 'jobs:my_applications' %}" class="cat-link">
+                    <span>📄 My Applications</span>
+                </a>
+                <a href="{% url 'jobs:saved_jobs' %}" class="cat-link">
+                    <span>🔖 Saved Jobs</span>
+                </a>
+                <a href="{% url 'jobs:create_company' %}" class="cat-link">
+                    <span>🏢 Post a Job</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- RIGHT: Jobs List -->
+        <div>
+            <!-- Results Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <p style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;">
+                    {% if request.GET.query or request.GET.location_type or request.GET.job_type %}
+                        🔍 <strong style="color: var(--text-primary);">{{ jobs|length }}</strong> results found
+                        {% if request.GET.query %}for "<strong>{{ request.GET.query }}</strong>"{% endif %}
+                    {% else %}
+                        Showing <strong style="color: var(--text-primary);">{{ jobs|length }}</strong> active jobs
+                    {% endif %}
+                </p>
+                <!-- Experience Level filter -->
+                <form method="get" style="display: flex; align-items: center; gap: 0.5rem;">
+                    {% if request.GET.query %}<input type="hidden" name="query" value="{{ request.GET.query }}">{% endif %}
+                    {% if request.GET.location_type %}<input type="hidden" name="location_type" value="{{ request.GET.location_type }}">{% endif %}
+                    <select name="experience_level" class="form-input" style="width: auto; font-size: 0.8rem; padding: 0.35rem 0.75rem;" onchange="this.form.submit()">
+                        <option value="">All Levels</option>
+                        <option value="entry" {% if request.GET.experience_level == 'entry' %}selected{% endif %}>Entry Level</option>
+                        <option value="mid" {% if request.GET.experience_level == 'mid' %}selected{% endif %}>Mid Level</option>
+                        <option value="senior" {% if request.GET.experience_level == 'senior' %}selected{% endif %}>Senior</option>
+                        <option value="lead" {% if request.GET.experience_level == 'lead' %}selected{% endif %}>Lead</option>
+                        <option value="executive" {% if request.GET.experience_level == 'executive' %}selected{% endif %}>Executive</option>
+                    </select>
+                </form>
+            </div>
+
+            <!-- Job Cards -->
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for job in jobs %}
+                <div class="job-card" onclick="window.location='{% url 'jobs:job_detail' job.pk %}'">
+                    <div style="display: flex; gap: 1.25rem; align-items: flex-start;">
+
+                        <!-- Company Logo -->
+                        <div style="flex-shrink: 0;">
+                            {% if job.company.logo %}
+                                <img src="{{ job.company.get_logo_url }}" alt="{{ job.company.name }}"
+                                     style="width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-color);">
+                            {% else %}
+                                <div style="width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, var(--accent-color), #6366f1); display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 1.3rem;">
+                                    {{ job.company.name|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Job Info -->
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; flex-wrap: wrap;">
+                                <div>
+                                    <h3 style="color: var(--text-primary); font-size: 1.05rem; font-weight: 800; margin-bottom: 0.2rem; line-height: 1.3;">
+                                        {{ job.title }}
+                                    </h3>
+                                    <p style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600; margin-bottom: 0.6rem;">
+                                        {{ job.company.name }}
+                                        {% if job.company.is_verified %}
+                                            <i class="fas fa-check-circle" style="color: #10b981; font-size: 0.8rem;" title="Verified Company"></i>
+                                        {% endif %}
+                                    </p>
+                                </div>
+
+                                <!-- Save Button -->
+                                <form method="post" action="{% url 'jobs:save' job.pk %}" style="display: inline;" onclick="event.stopPropagation()">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background: var(--hover-bg); border: 1px solid var(--border-color); color: var(--text-secondary); cursor: pointer; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.15s;"
+                                        onmouseover="this.style.background='var(--accent-color)';this.style.color='white'"
+                                        onmouseout="this.style.background='var(--hover-bg)';this.style.color='var(--text-secondary)'"
+                                        title="Save Job">
+                                        <i class="far fa-bookmark"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Meta Badges -->
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                <span class="badge
+                                    {% if job.location_type == 'remote' %}badge-remote
+                                    {% elif job.location_type == 'hybrid' %}badge-hybrid
+                                    {% else %}badge-onsite{% endif %}">
+                                    {% if job.location_type == 'remote' %}🌍{% elif job.location_type == 'hybrid' %}🏙️{% else %}🏢{% endif %}
+                                    {{ job.get_location_type_display }}
+                                </span>
+                                <span class="badge
+                                    {% if job.job_type == 'full_time' %}badge-fulltime
+                                    {% elif job.job_type == 'part_time' %}badge-parttime
+                                    {% elif job.job_type == 'contract' %}badge-contract
+                                    {% else %}badge-intern{% endif %}">
+                                    {{ job.get_job_type_display }}
+                                </span>
+                                <span class="badge" style="background: var(--hover-bg); color: var(--text-secondary);">
+                                    {{ job.get_experience_level_display }}
+                                </span>
+                            </div>
+
+                            <!-- Location & Salary -->
+                            <div style="display: flex; gap: 1.5rem; font-size: 0.82rem; color: var(--text-secondary); flex-wrap: wrap;">
+                                {% if job.location %}
+                                <span><i class="fas fa-map-marker-alt"></i> {{ job.location }}</span>
+                                {% endif %}
+                                {% if job.salary_display %}
+                                <span><i class="fas fa-money-bill-wave" style="color: #10b981;"></i> {{ job.salary_display }}</span>
+                                {% endif %}
+                                <span><i class="far fa-clock"></i> Posted {{ job.posted_at|timesince }} ago</span>
+                                {% if job.application_deadline %}
+                                    <span style="color: #ef4444;"><i class="fas fa-hourglass-half"></i> Deadline: {{ job.application_deadline|date:"d M Y" }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="text-align: center; padding: 5rem 2rem; background: var(--card-bg); border: 1.5px dashed var(--border-color); border-radius: 18px;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
+                    <h3 style="color: var(--text-primary); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">No jobs found</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Try different keywords or filters.</p>
+                    <a href="?" style="display: inline-block; padding: 0.6rem 1.5rem; background: var(--accent-color); color: white; border-radius: 12px; text-decoration: none; font-weight: 700;">
+                        Clear Filters
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

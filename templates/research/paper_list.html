@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Research Papers — Academic Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .paper-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem 1.75rem;
+        transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .paper-card:hover {
+        box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+        border-color: var(--accent-color);
+    }
+    .stat-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.65rem;
+        background: var(--hover-bg);
+        border-radius: 20px;
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+    .cat-link {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.55rem 0.75rem;
+        border-radius: 10px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: background 0.15s;
+    }
+    .cat-link:hover, .cat-link.active {
+        background: var(--hover-bg);
+        font-weight: 700;
+    }
+    .form-input {
+        width: 100%;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 10px;
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+        outline: none;
+        box-sizing: border-box;
+    }
+    .form-input:focus { border-color: var(--accent-color); }
+    select.form-input { appearance: none; cursor: pointer; }
+
+    @media (max-width: 900px) {
+        .research-grid { grid-template-columns: 1fr !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 0 1rem 4rem;">
+
+    <!-- Hero Header -->
+    <div style="padding: 2.5rem 2rem 2rem; background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08)); border-radius: 20px; margin-bottom: 2rem; border: 1px solid var(--border-color); position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -20px; right: -20px; width: 160px; height: 160px; background: radial-gradient(circle, rgba(99,102,241,0.15), transparent); border-radius: 50%;"></div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem;">
+            <div>
+                <h1 style="color: var(--text-primary); font-size: 2rem; font-weight: 900; margin-bottom: 0.4rem;">
+                    🎓 Research Hub
+                </h1>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    Discover and share academic papers, preprints & research
+                </p>
+
+                <!-- Search Bar -->
+                <form method="get" style="display: flex; gap: 0.75rem; flex-wrap: wrap; max-width: 600px;">
+                    <div style="flex: 1; min-width: 200px; position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                        <input type="text" name="query" value="{{ request.GET.query }}"
+                            placeholder="Search papers, authors, keywords..."
+                            class="form-input" style="padding-left: 2.5rem; border-radius: 12px;">
+                    </div>
+                    <select name="sort_by" class="form-input" style="width: auto; border-radius: 12px; min-width: 130px;" onchange="this.form.submit()">
+                        <option value="">Sort: Recent</option>
+                        <option value="views" {% if request.GET.sort_by == 'views' %}selected{% endif %}>Most Viewed</option>
+                        <option value="downloads" {% if request.GET.sort_by == 'downloads' %}selected{% endif %}>Most Downloaded</option>
+                        <option value="likes" {% if request.GET.sort_by == 'likes' %}selected{% endif %}>Most Liked</option>
+                    </select>
+                    <button type="submit" style="padding: 0.65rem 1.5rem; background: #6366f1; color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(99,102,241,0.3);">
+                        Search
+                    </button>
+                </form>
+            </div>
+
+            <a href="{% url 'research:upload' %}"
+               style="display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1.5rem; background: #6366f1; color: white; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(99,102,241,0.3); white-space: nowrap; height: fit-content;">
+                <i class="fas fa-upload"></i> Upload Paper
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="research-grid" style="display: grid; grid-template-columns: 230px 1fr; gap: 1.75rem; align-items: start;">
+
+        <!-- LEFT: Sidebar -->
+        <aside style="position: sticky; top: 88px;">
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                <h3 style="color: var(--text-primary); font-size: 0.95rem; font-weight: 800; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color);">
+                    📚 Field of Study
+                </h3>
+                <a href="?" class="cat-link {% if not request.GET.category %}active{% endif %}">
+                    <span>All Papers</span>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); background: var(--hover-bg); padding: 0.1rem 0.5rem; border-radius: 10px;">{{ papers|length }}</span>
+                </a>
+                {% for cat in categories %}
+                <a href="?category={{ cat.id }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}"
+                   class="cat-link {% if request.GET.category == cat.id|stringformat:'s' %}active{% endif %}">
+                    <span>
+                        {% if cat.icon %}<i class="fas fa-{{ cat.icon }}" style="width:16px; margin-right:0.3rem; opacity:0.7;"></i>{% endif %}
+                        {{ cat.name }}
+                    </span>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); background: var(--hover-bg); padding: 0.1rem 0.5rem; border-radius: 10px;">{{ cat.paper_count }}</span>
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Tips Card -->
+            <div style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.08)); border: 1px solid rgba(99,102,241,0.2); border-radius: 16px; padding: 1.25rem;">
+                <h4 style="color: var(--text-primary); font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem;">💡 Did you know?</h4>
+                <p style="color: var(--text-secondary); font-size: 0.8rem; line-height: 1.6;">
+                    Sharing your research here increases visibility by <strong>3x</strong> compared to traditional journals alone.
+                </p>
+                <a href="{% url 'research:upload' %}" style="display: block; margin-top: 1rem; text-align: center; padding: 0.5rem; background: #6366f1; color: white; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 0.85rem;">
+                    Share Your Work
+                </a>
+            </div>
+        </aside>
+
+        <!-- RIGHT: Papers -->
+        <div>
+            <!-- Results Count -->
+            <div style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                <p style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 600;">
+                    {% if request.GET.query or request.GET.category %}
+                        🔍 <strong style="color: var(--text-primary);">{{ papers|length }}</strong> results
+                        {% if request.GET.query %}for "<strong>{{ request.GET.query }}</strong>"{% endif %}
+                    {% else %}
+                        <strong style="color: var(--text-primary);">{{ papers|length }}</strong> papers published
+                    {% endif %}
+                </p>
+                {% if request.GET.query or request.GET.category %}
+                    <a href="?" style="font-size: 0.82rem; color: var(--accent-color); text-decoration: none; font-weight: 600;">✕ Clear</a>
+                {% endif %}
+            </div>
+
+            <!-- Paper Cards -->
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                {% for paper in papers %}
+                <article class="paper-card">
+                    <div style="display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 0;">
+                            <!-- Category tag -->
+                            {% if paper.category %}
+                            <span style="display: inline-block; padding: 0.2rem 0.65rem; background: rgba(99,102,241,0.12); color: #6366f1; border-radius: 20px; font-size: 0.72rem; font-weight: 700; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.03em;">
+                                {{ paper.category.name }}
+                            </span>
+                            {% endif %}
+
+                            <!-- Title -->
+                            <h3 style="margin-bottom: 0.4rem; line-height: 1.4;">
+                                <a href="{% url 'research:paper_detail' paper.pk %}"
+                                   style="color: var(--text-primary); text-decoration: none; font-size: 1.05rem; font-weight: 800;"
+                                   onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='var(--text-primary)'">
+                                    {{ paper.title }}
+                                </a>
+                            </h3>
+
+                            <!-- Authors -->
+                            <p style="color: var(--text-secondary); font-size: 0.82rem; font-weight: 600; margin-bottom: 0.75rem;">
+                                <i class="fas fa-user-graduate" style="margin-right: 0.35rem;"></i>
+                                {{ paper.primary_author.get_full_name|default:paper.primary_author.username }}
+                                {% if paper.co_authors.exists %}
+                                    <span style="opacity: 0.75;">et al.</span>
+                                {% endif %}
+                                &nbsp;·&nbsp;
+                                {{ paper.published_at|date:"M Y" }}
+                            </p>
+
+                            <!-- Abstract -->
+                            <p style="color: var(--text-primary); font-size: 0.875rem; line-height: 1.65; margin-bottom: 1rem; opacity: 0.85;">
+                                {{ paper.abstract|truncatewords:35 }}
+                            </p>
+
+                            <!-- Keywords -->
+                            {% if paper.keywords %}
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem;">
+                                {% for kw in paper.keywords|split:',' %}
+                                <span style="padding: 0.2rem 0.6rem; background: var(--hover-bg); border-radius: 20px; font-size: 0.72rem; color: var(--text-secondary); font-weight: 600;">
+                                    #{{ kw|trim }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <!-- Stats -->
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center;">
+                                <span class="stat-pill"><i class="far fa-eye"></i> {{ paper.view_count }}</span>
+                                <span class="stat-pill"><i class="fas fa-download"></i> {{ paper.download_count }}</span>
+                                <span class="stat-pill"><i class="far fa-heart"></i> {{ paper.likes.count }}</span>
+                                <span class="stat-pill"><i class="far fa-comment"></i> {{ paper.comments.count }}</span>
+                                <span style="margin-left: auto;">
+                                    <a href="{% url 'research:paper_detail' paper.pk %}"
+                                       style="padding: 0.45rem 1.1rem; background: rgba(99,102,241,0.1); color: #6366f1; border-radius: 8px; text-decoration: none; font-size: 0.82rem; font-weight: 700; transition: background 0.15s;"
+                                       onmouseover="this.style.background='#6366f1';this.style.color='white'"
+                                       onmouseout="this.style.background='rgba(99,102,241,0.1)';this.style.color='#6366f1'">
+                                        Read Paper →
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% empty %}
+                <div style="text-align: center; padding: 5rem 2rem; background: var(--card-bg); border: 1.5px dashed var(--border-color); border-radius: 18px;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">📭</div>
+                    <h3 style="color: var(--text-primary); font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">No papers found</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Be the first to share research in this area!</p>
+                    <a href="{% url 'research:upload' %}"
+                       style="display: inline-block; padding: 0.65rem 1.5rem; background: #6366f1; color: white; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 0.9rem;">
+                        Upload a Paper
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

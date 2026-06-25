@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Apply for {{ job.title }} - Social Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 650px; margin-top: 2rem; margin-bottom: 4rem;">
+    <!-- Cancel link -->
+    <a href="{% url 'jobs:job_detail' job.pk %}" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); margin-bottom: 1.5rem; font-weight: 600;">
+        <i class="fas fa-arrow-left"></i> Cancel and Go Back
+    </a>
+
+    <!-- Application Card -->
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+        <div style="text-align: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+            <span style="font-size: 0.85rem; text-transform: uppercase; font-weight: 700; color: var(--accent-color); letter-spacing: 0.05em; display: block; margin-bottom: 0.25rem;">
+                Job Application Form
+            </span>
+            <h1 style="color: var(--text-primary); font-size: 1.65rem; font-weight: 800; line-height: 1.3; margin-bottom: 0.35rem;">
+                {{ job.title }}
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">at <strong>{{ job.company.name }}</strong> • {{ job.location }}</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <!-- Resume file upload -->
+            <div style="margin-bottom: 1.5rem;">
+                <label for="id_resume" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 700; font-size: 0.95rem;">
+                    Upload Resume / CV (PDF)*
+                </label>
+                <div class="file-upload-wrapper">
+                    {{ form.resume }}
+                </div>
+                {% if form.resume.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.resume.errors }}</p>{% endif %}
+            </div>
+
+            <!-- Cover Letter textarea -->
+            <div style="margin-bottom: 1.5rem;">
+                <label for="id_cover_letter" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 700; font-size: 0.95rem;">
+                    Cover Letter (optional)
+                </label>
+                {{ form.cover_letter }}
+                {% if form.cover_letter.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.cover_letter.errors }}</p>{% endif %}
+            </div>
+
+            <!-- Additional Docs file upload -->
+            <div style="margin-bottom: 2rem;">
+                <label for="id_additional_docs" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 700; font-size: 0.95rem;">
+                    Additional Documents (optional)
+                </label>
+                <div class="file-upload-wrapper">
+                    {{ form.additional_docs }}
+                </div>
+                {% if form.additional_docs.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.additional_docs.errors }}</p>{% endif %}
+            </div>
+
+            <!-- Submit button -->
+            <button type="submit" style="width: 100%; padding: 1rem; background: var(--accent-color); color: white; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);">
+                Submit Job Application
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    textarea {
+        width: 100%;
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        outline: none;
+    }
+    textarea:focus {
+        border-color: var(--accent-color);
+    }
+    .file-upload-wrapper input[type="file"] {
+        display: block;
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--bg-secondary);
+        border: 1px dashed var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

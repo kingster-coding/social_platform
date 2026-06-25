@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Post a New Job - {{ company.name }} - Social Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin-top: 2rem; margin-bottom: 4rem;">
+    <!-- Back to Job listings -->
+    <a href="{% url 'jobs:job_list' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--text-secondary); margin-bottom: 1.5rem; font-weight: 600;">
+        <i class="fas fa-arrow-left"></i> Cancel and Back
+    </a>
+
+    <!-- Create Card -->
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+        <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+            <div style="width: 54px; height: 54px; border-radius: 8px; background: var(--bg-secondary); overflow: hidden; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;">
+                <img src="{{ company.get_logo_url }}" alt="{{ company.name }}" style="max-width: 100%; max-height: 100%; object-fit: cover;">
+            </div>
+            <div>
+                <h1 style="color: var(--text-primary); font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em;">Post a Job Opportunity</h1>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Recruiting talent on behalf of <strong>{{ company.name }}</strong></p>
+            </div>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <!-- Job Title -->
+                <div style="grid-column: 1 / -1;">
+                    <label for="id_title" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Job Title</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.title.errors }}</p>{% endif %}
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label for="id_category" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Category</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.category.errors }}</p>{% endif %}
+                </div>
+
+                <!-- Job Type -->
+                <div>
+                    <label for="id_job_type" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Job Type</label>
+                    {{ form.job_type }}
+                    {% if form.job_type.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.job_type.errors }}</p>{% endif %}
+                </div>
+
+                <!-- Experience Level -->
+                <div>
+                    <label for="id_experience_level" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Experience Level Required</label>
+                    {{ form.experience_level }}
+                    {% if form.experience_level.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.experience_level.errors }}</p>{% endif %}
+                </div>
+
+                <!-- Location Type -->
+                <div>
+                    <label for="id_location_type" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Location Type</label>
+                    {{ form.location_type }}
+                    {% if form.location_type.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.location_type.errors }}</p>{% endif %}
+                </div>
+
+                <!-- Location HQ -->
+                <div style="grid-column: 1 / -1;">
+                    <label for="id_location" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Location Description (e.g. Noida, UP, India)</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.location.errors }}</p>{% endif %}
+                </div>
+            </div>
+
+            <!-- Job Description -->
+            <div style="margin-bottom: 1.5rem;">
+                <label for="id_description" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Job Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.description.errors }}</p>{% endif %}
+            </div>
+
+            <!-- Requirements -->
+            <div style="margin-bottom: 1.5rem;">
+                <label for="id_requirements" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Requirements & Prerequisites</label>
+                {{ form.requirements }}
+                {% if form.requirements.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.requirements.errors }}</p>{% endif %}
+            </div>
+
+            <!-- Responsibilities -->
+            <div style="margin-bottom: 1.5rem;">
+                <label for="id_responsibilities" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Key Responsibilities</label>
+                {{ form.responsibilities }}
+                {% if form.responsibilities.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.responsibilities.errors }}</p>{% endif %}
+            </div>
+
+            <!-- Benefits -->
+            <div style="margin-bottom: 1.5rem;">
+                <label for="id_benefits" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Benefits & Perks (optional)</label>
+                {{ form.benefits }}
+                {% if form.benefits.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.benefits.errors }}</p>{% endif %}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <!-- Salary min -->
+                <div>
+                    <label for="id_salary_min" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Min Salary</label>
+                    {{ form.salary_min }}
+                    {% if form.salary_min.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.salary_min.errors }}</p>{% endif %}
+                </div>
+
+                <!-- Salary max -->
+                <div>
+                    <label for="id_salary_max" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Max Salary</label>
+                    {{ form.salary_max }}
+                    {% if form.salary_max.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.salary_max.errors }}</p>{% endif %}
+                </div>
+
+                <!-- Currency -->
+                <div>
+                    <label for="id_salary_currency" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Currency</label>
+                    {{ form.salary_currency }}
+                    {% if form.salary_currency.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.salary_currency.errors }}</p>{% endif %}
+                </div>
+
+                <!-- Salary Period -->
+                <div>
+                    <label for="id_salary_period" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Salary Period</label>
+                    {{ form.salary_period }}
+                    {% if form.salary_period.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.salary_period.errors }}</p>{% endif %}
+                </div>
+
+                <!-- Show Salary checkbox -->
+                <div style="grid-column: 1 / -1;">
+                    <label style="display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">
+                        {{ form.show_salary }}
+                        <span>Show salary publicly on job posting</span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <!-- Application deadline -->
+                <div>
+                    <label for="id_application_deadline" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Application Deadline</label>
+                    {{ form.application_deadline }}
+                    {% if form.application_deadline.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.application_deadline.errors }}</p>{% endif %}
+                </div>
+
+                <!-- Number of Vacancies -->
+                <div>
+                    <label for="id_vacancies" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.95rem;">Number of Vacancies</label>
+                    {{ form.vacancies }}
+                    {% if form.vacancies.errors %}<p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem;">{{ form.vacancies.errors }}</p>{% endif %}
+                </div>
+            </div>
+
+            <!-- Submit buttons -->
+            <button type="submit" style="width: 100%; padding: 1rem; background: var(--accent-color); color: white; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);">
+                Publish Job Listing
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+        width: 100%;
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        outline: none;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: var(--accent-color);
+    }
+</style>
+{% endblock %}

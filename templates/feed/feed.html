@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load hashtag_filters %}
+
+{% block title %}Feed - Social Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 1120px; margin: 1.5rem auto; padding: 0 1rem;">
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1.5rem; align-items: start;">
+
+        <div>
+            <!-- Stories Widget (Alpine.js) -->
+            <div x-data="{ openStoryModal: false }">
+                <!-- Stories Container -->
+                <div style="display: flex; gap: 1rem; padding: 0.75rem 1rem; overflow-x: auto; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 1.5rem; align-items: center; min-height: 96px;">
+                    <!-- Add Story Button -->
+                    <div @click="openStoryModal = true" style="display: flex; flex-direction: column; align-items: center; cursor: pointer; flex-shrink: 0; width: 64px;">
+                        <div style="width: 56px; height: 56px; border-radius: 50%; border: 2px dashed var(--accent-color); display: flex; align-items: center; justify-content: center; position: relative;">
+                            <i class="fas fa-plus" style="color: var(--accent-color); font-size: 1.2rem;"></i>
+                        </div>
+                        <span style="font-size: 0.75rem; color: var(--text-primary); margin-top: 0.35rem; font-weight: 600; text-align: center; white-space: nowrap;">Add Story</span>
+                    </div>
+                    
+                    <!-- Loop over stories -->
+                    {% for story in stories %}
+                        <div x-data="{ showStory: false }" style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 64px; cursor: pointer;">
+                            <div @click="showStory = true" style="width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--accent-color); padding: 2px; display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 100%; height: 100%; border-radius: 50%; background: var(--hover-bg); display: flex; align-items: center; justify-content: center; color: var(--text-primary); font-weight: bold; overflow: hidden;">
+                                    {% if story.image %}
+                                        <img src="{{ story.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        {{ story.author.username|first|upper }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.35rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; text-align: center;">
+                                {{ story.author.username }}
+                            </span>
+
+                            <!-- Story Fullscreen View Modal -->
+                            <div x-show="showStory" 
+                                 @click.away="showStory = false" 
+                                 style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                                <button @click="showStory = false" style="position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: white; font-size: 2rem; cursor: pointer;">&times;</button>
+                                <div style="max-width: 480px; width: 90%; height: 80vh; border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #111; position: relative;">
+                                    <div style="position: absolute; top: 1rem; left: 1rem; display: flex; align-items: center; gap: 0.5rem; color: white; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); z-index: 10;">
+                                        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                                            {{ story.author.username|first|upper }}
+                                        </div>
+                                        <span>{{ story.author.username }}</span>
+                                        <span style="font-size: 0.8rem; opacity: 0.8;">• {{ story.created_at|timesince }} ago</span>
+                                    </div>
+                                    
+                                    {% if story.image %}
+                                        <img src="{{ story.image.url }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                    {% endif %}
+                                    {% if story.video %}
+                                        <video controls autoplay style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                            <source src="{{ story.video.url }}" type="video/mp4">
+                                        </video>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Upload Story Modal -->
+                <div x-show="openStoryModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                    <div @click.away="openStoryModal = false" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 2rem; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3 style="color: var(--text-primary); font-weight: 800; font-size: 1.25rem;">Create a Story 📸</h3>
+                            <button @click="openStoryModal = false" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
+                        </div>
+                        
+                        <form method="POST" action="{% url 'feed:create_story' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 600; font-size: 0.9rem;">Choose Image or Video</label>
+                                <input type="file" name="image" accept="image/*,video/*" required style="width: 100%; display: block; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem;">
+                            </div>
+                            <button type="submit" style="width: 100%; padding: 0.85rem; background: var(--accent-color); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                                Share to Story
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Post Card -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1rem; margin-bottom: 1.5rem;">
+                <form method="post" action="{% url 'feed:create_post' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div style="display: flex; gap: 0.9rem; align-items: flex-start; margin-bottom: 1rem;">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; flex-shrink: 0;">
+                            {{ user.username|first|upper }}
+                        </div>
+                        <div style="flex: 1;">
+                            {{ form.content }}
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <label style="cursor: pointer; padding: 0.65rem 0.9rem; background: var(--bg-secondary); border-radius: 10px; color: var(--text-primary);">
+                                <i class="fas fa-image" style="margin-right: 0.4rem; color: #16a34a;"></i> Photo
+                                {{ form.image }}
+                            </label>
+                            <label style="cursor: pointer; padding: 0.65rem 0.9rem; background: var(--bg-secondary); border-radius: 10px; color: var(--text-primary);">
+                                <i class="fas fa-video" style="margin-right: 0.4rem; color: #7c3aed;"></i> Video
+                                {{ form.video }}
+                            </label>
+                        </div>
+
+                        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                            {{ form.privacy }}
+                            <button type="submit" style="padding: 0.72rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                                Post
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+ 
+            {% if request.user.consent.consent_type == 'ads' %}
+                <!-- Sponsored Ad Banner -->
+                <div style="background: var(--card-bg); border: 2px solid #f59e0b; border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem; position: relative;">
+                    <span style="position: absolute; top: 0.75rem; right: 1rem; font-size: 0.75rem; color: #f59e0b; text-transform: uppercase; font-weight: bold; border: 1px solid #f59e0b; padding: 0.15rem 0.4rem; border-radius: 4px;">Sponsored Ad</span>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <div style="font-size: 2.5rem;">🚀</div>
+                        <div style="flex: 1;">
+                            <h4 style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">Upgrade to Premium for No Ads!</h4>
+                            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 0.75rem;">Get rid of these sponsor cards, get a verified badge, and support developers for just ₹299/mo.</p>
+                            <a href="{% url 'monetization:consent' %}" style="display: inline-block; padding: 0.5rem 1.2rem; background: #f59e0b; color: white; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem;">Remove Ads</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Posts List Wrapper -->
+            <div id="posts-wrapper">
+                {% include 'feed/partials/post_list.html' %}
+            </div>
+        </div>
+
+        <aside style="position: sticky; top: 96px; display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Trending Hashtags -->
+            <div x-data="{ trending: [] }" x-init="fetch('{% url 'feed:trending_hashtags' %}')
+                .then(response => response.json())
+                .then(data => trending = data.trending)">
+                <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1rem;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.1rem; font-weight: 700;">
+                        <i class="fas fa-fire" style="color: #f59e0b; margin-right: 0.5rem;"></i> Trending Hashtags
+                    </h3>
+
+                    <template x-for="tag in trending" :key="tag.name">
+                        <a :href="tag.url" style="display: block; padding: 0.65rem 0; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; gap: 0.75rem;">
+                                <span style="font-weight: 600;" x-text="'#' + tag.name"></span>
+                                <span style="color: var(--text-secondary); font-size: 0.875rem;" x-text="tag.count + ' posts'"></span>
+                            </div>
+                        </a>
+                    </template>
+
+                    <p x-show="trending.length === 0" style="color: var(--text-secondary); font-size: 0.9rem;">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Follow Suggestions Card -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1rem;">
+                <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.1rem; font-weight: 700;">
+                    <i class="fas fa-user-plus" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Follow Suggestions
+                </h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    {% for suggestion in suggestions %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.65rem;">
+                                <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.9rem;">
+                                    {{ suggestion.username|first|upper }}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">
+                                        <a href="{% url 'accounts:profile_detail' suggestion.username %}" style="text-decoration: none; color: inherit; font-weight: 700;">
+                                            {{ suggestion.get_full_name|default:suggestion.username }}
+                                        </a>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);">@{{ suggestion.username }}</div>
+                                </div>
+                            </div>
+                            
+                            <form hx-post="{% url 'accounts:follow_unfollow' suggestion.username %}" hx-swap="outerHTML">
+                                {% csrf_token %}
+                                <button type="submit" style="padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; border: none; background: var(--accent-color); color: white; cursor: pointer;">
+                                    Follow
+                                </button>
+                            </form>
+                        </div>
+                    {% empty %}
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">No suggestions.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    textarea,
+    select {
+        width: 100%;
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    @media (max-width: 992px) {
+        div[style*="grid-template-columns: minmax(0, 1fr) 320px;"] {
+            grid-template-columns: 1fr !important;
+        }
+
+        aside[style*="position: sticky"] {
+            position: static !important;
+            top: auto !important;
+        }
+    }
+    </style>
+{% endblock %}

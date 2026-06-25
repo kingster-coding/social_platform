@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Saved Jobs - Social Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 1.5rem; margin-bottom: 3rem;">
+    <!-- Header -->
+    <div style="margin-bottom: 2rem;">
+        <h1 style="color: var(--text-primary); font-size: 2rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 0.25rem;">Saved Jobs</h1>
+        <p style="color: var(--text-secondary);">Jobs you bookmarked for later consideration.</p>
+    </div>
+
+    <!-- Sub-navigation -->
+    <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <a href="{% url 'jobs:job_list' %}" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">Jobs Board</a>
+        <a href="{% url 'jobs:my_applications' %}" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">My Applications</a>
+        <a href="{% url 'jobs:saved_jobs' %}" style="color: var(--accent-color); text-decoration: none; font-weight: 600; border-bottom: 2px solid var(--accent-color); padding-bottom: 1rem; margin-bottom: -1rem;">Saved Jobs</a>
+    </div>
+
+    <!-- Saved Jobs list -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+        {% for item in saved_jobs %}
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="width: 50px; height: 50px; border-radius: 8px; background: var(--bg-secondary); overflow: hidden; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <img src="{{ item.job.company.get_logo_url }}" alt="{{ item.job.company.name }}" style="max-width: 100%; max-height: 100%; object-fit: cover;">
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">
+                            <a href="{% url 'jobs:job_detail' item.job.pk %}" style="color: inherit; text-decoration: none;">
+                                {{ item.job.title }}
+                            </a>
+                        </h3>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                            <strong>{{ item.job.company.name }}</strong> • {{ item.job.location }} • {{ item.job.salary_display }}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <!-- Unsave option -->
+                    <form method="post" action="{% url 'jobs:save' item.job.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" style="background: none; border: none; color: var(--accent-color); font-size: 1.25rem; cursor: pointer; padding: 0.5rem;" title="Remove Bookmark">
+                            <i class="fas fa-bookmark"></i>
+                        </button>
+                    </form>
+
+                    <a href="{% url 'jobs:job_detail' item.job.pk %}" style="padding: 0.5rem 1.25rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 0.9rem;">
+                        View Job Details
+                    </a>
+                </div>
+            </div>
+        {% empty %}
+            <div style="text-align: center; padding: 4rem 2rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px;">
+                <i class="far fa-bookmark" style="font-size: 3.5rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">No saved jobs</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Save job positions to view them later.</p>
+                <a href="{% url 'jobs:job_list' %}" style="padding: 0.65rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                    Search Jobs
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

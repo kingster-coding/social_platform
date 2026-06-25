@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notifications - Social Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 2rem auto;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="color: var(--text-primary);">
+            <i class="fas fa-bell"></i> Notifications
+        </h1>
+        
+        <div>
+            <a href="{% url 'notifications:preferences' %}" style="margin-right: 1rem; color: var(--text-primary); text-decoration: none;">
+                <i class="fas fa-cog"></i> Preferences
+            </a>
+            <form method="post" action="{% url 'notifications:mark_all_read' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" style="background: none; border: none; color: var(--accent-color); cursor: pointer;">
+                    <i class="fas fa-check-double"></i> Mark all read
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
+        {% for notification in notifications %}
+            <div class="notification-item {% if not notification.is_read %}unread{% endif %}"
+                 style="padding: 1rem; border-bottom: 1px solid var(--border-color); 
+                        {% if not notification.is_read %}background: var(--bg-secondary);{% endif %}">
+                <div style="display: flex; gap: 1rem;">
+                    <!-- Icon -->
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; color: white;">
+                        {% if notification.notification_type == 'like' %}
+                            <i class="fas fa-heart"></i>
+                        {% elif notification.notification_type == 'comment' %}
+                            <i class="fas fa-comment"></i>
+                        {% elif notification.notification_type == 'follow' %}
+                            <i class="fas fa-user-plus"></i>
+                        {% elif 'job' in notification.notification_type %}
+                            <i class="fas fa-briefcase"></i>
+                        {% elif 'webinar' in notification.notification_type %}
+                            <i class="fas fa-video"></i>
+                        {% elif 'group' in notification.notification_type %}
+                            <i class="fas fa-users"></i>
+                        {% else %}
+                            <i class="fas fa-bell"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Content -->
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <strong style="color: var(--text-primary);">{{ notification.title }}</strong>
+                            <span style="color: var(--text-secondary); font-size: 0.875rem;">
+                                {{ notification.created_at|timesince }} ago
+                            </span>
+                        </div>
+                        <p style="color: var(--text-secondary); margin: 0.25rem 0;">{{ notification.message }}</p>
+                        
+                        <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                            {% if notification.url %}
+                                <a href="{{ notification.url }}" style="color: var(--accent-color); text-decoration: none; font-size: 0.875rem;">
+                                    View →
+                                </a>
+                            {% endif %}
+                            {% if not notification.is_read %}
+                                <form method="post" action="{% url 'notifications:mark_read' notification.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.875rem;">
+                                        Mark as read
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+                <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                No notifications yet.
+            </p>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if notifications.has_other_pages %}
+        <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 0.5rem;">
+            {% if notifications.has_previous %}
+                <a href="?page={{ notifications.previous_page_number }}" style="padding: 0.5rem 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); text-decoration: none;">
+                    Previous
+                </a>
+            {% endif %}
+            
+            <span style="padding: 0.5rem 1rem; color: var(--text-secondary);">
+                Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}
+            </span>
+            
+            {% if notifications.has_next %}
+                <a href="?page={{ notifications.next_page_number }}" style="padding: 0.5rem 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); text-decoration: none;">
+                    Next
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
