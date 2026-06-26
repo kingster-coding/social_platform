@@ -45,6 +45,14 @@ ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 _csrf_origins = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(',') if o.strip()]
 
+# Automatic Railway environment setup for CSRF
+railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+if railway_domain:
+    domain_url = f"https://{railway_domain}"
+    if domain_url not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(domain_url)
+
+
 
 # ============================================
 # APPLICATION DEFINITION
