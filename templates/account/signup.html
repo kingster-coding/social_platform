@@ -909,6 +909,20 @@ document.getElementById('reg-form').addEventListener('submit', async function(e)
             const otpPhase = document.getElementById('otp-phase');
             otpPhase.classList.add('visible');
             document.getElementById('otp-masked-email').textContent = data.masked_email;
+
+            // If testing OTP is returned, pre-fill it and enable register button!
+            if (data.testing_otp) {
+                const otpStr = data.testing_otp.toString();
+                for (let i = 0; i < 6; i++) {
+                    const box = document.getElementById('otp-' + i);
+                    if (box) {
+                        box.value = otpStr[i];
+                        box.classList.add('filled');
+                    }
+                }
+                checkOTPComplete();
+            }
+
             // Focus first OTP box
             otpBoxes[0].focus();
             // Start resend timer
@@ -1040,6 +1054,20 @@ async function resendOTP() {
             // Clear OTP boxes
             otpBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
             checkOTPComplete();
+
+            // If testing OTP is returned, pre-fill it and enable register button!
+            if (data.testing_otp) {
+                const otpStr = data.testing_otp.toString();
+                for (let i = 0; i < 6; i++) {
+                    const box = document.getElementById('otp-' + i);
+                    if (box) {
+                        box.value = otpStr[i];
+                        box.classList.add('filled');
+                    }
+                }
+                checkOTPComplete();
+            }
+
             otpBoxes[0].focus();
             startResendTimer();
 

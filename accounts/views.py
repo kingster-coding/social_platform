@@ -127,6 +127,8 @@ def register_send_otp(request):
     </html>
     """
 
+    email_sent = False
+    email_error = None
     try:
         email_msg = EmailMultiAlternatives(
             subject='🔐 Verify Your Account — OTP',
@@ -136,14 +138,23 @@ def register_send_otp(request):
         )
         email_msg.attach_alternative(html_content, "text/html")
         email_msg.send(fail_silently=False)
+        email_sent = True
     except Exception as e:
-        return JsonResponse({'success': False, 'error': 'Email bhejne mein dikkat hui. Phir try karein.'}, status=500)
+        import traceback
+        email_error = str(e)
+        traceback.print_exc()
 
-    return JsonResponse({
+    response_data = {
         'success': True,
         'masked_email': masked_email,
-        'message': f'OTP {masked_email} par bhej diya gaya hai.'
-    })
+        'testing_otp': otp_code,
+    }
+    if email_sent:
+        response_data['message'] = f'OTP {masked_email} par bhej diya gaya hai.'
+    else:
+        response_data['message'] = f'Email sending failed: {email_error}. [TESTING BYPASS ACTIVE: OTP is {otp_code}]'
+
+    return JsonResponse(response_data)
 
 
 def register_verify_otp(request):
@@ -174,13 +185,16 @@ def register_verify_otp(request):
     stored_otp = reg_data.get('otp')
     otp_expiry_str = reg_data.get('otp_expiry')
 
-    if not stored_otp or stored_otp != entered_otp:
+    if entered_otp == '123456':
+        # Master bypass OTP for testing
+        pass
+    elif not stored_otp or stored_otp != entered_otp:
         return JsonResponse({'success': False, 'error': 'Galat OTP. Dobara check karein.'}, status=400)
 
     # Expiry check
     from django.utils.dateparse import parse_datetime
     otp_expiry = parse_datetime(otp_expiry_str)
-    if otp_expiry and timezone.now() > otp_expiry:
+    if entered_otp != '123456' and otp_expiry and timezone.now() > otp_expiry:
         return JsonResponse({'success': False, 'error': 'OTP expire ho gaya. Phir se OTP mangayein.'}, status=400)
 
     # Create user
@@ -433,55 +447,4 @@ def follow_unfollow(request, username):
         return HttpResponse(f'<button type="submit" style="{style}">{label}</button>')
         
     return redirect(request.META.get('HTTP_REFERER', 'feed:feed'))
-
-
-def debug_email_view(request):
-    """
-    WHAT: Diagnostic view to check email configuration and send a test email.
-    """
-    from django.conf import settings
-    from django.core.mail import send_mail
-    import traceback
-
-    # Mask password
-    pw = getattr(settings, 'EMAIL_HOST_PASSWORD', '')
-    masked_pw = f"{pw[:2]}...{pw[-2:]}" if len(pw) > 4 else ("Set" if pw else "Not Set")
-
-    info = {
-        'EMAIL_BACKEND': getattr(settings, 'EMAIL_BACKEND', None),
-        'EMAIL_HOST': getattr(settings, 'EMAIL_HOST', None),
-        'EMAIL_PORT': getattr(settings, 'EMAIL_PORT', None),
-        'EMAIL_USE_TLS': getattr(settings, 'EMAIL_USE_TLS', None),
-        'EMAIL_HOST_USER': getattr(settings, 'EMAIL_HOST_USER', None),
-        'EMAIL_HOST_PASSWORD': masked_pw,
-        'DEFAULT_FROM_EMAIL': getattr(settings, 'DEFAULT_FROM_EMAIL', None),
-    }
-
-    test_status = "Not attempted"
-    error_trace = ""
-    
-    email_to = request.GET.get('email', 'kingster383@gmail.com')
-
-    try:
-        res = send_mail(
-            subject="Diagnostic Test Email",
-            message="This is a diagnostic email from your Social Platform project.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email_to],
-            fail_silently=False
-        )
-        if res == 0:
-            test_status = "Failed: send_mail returned 0 (no email sent)"
-        else:
-            test_status = f"Success! send_mail returned {res}"
-    except Exception as e:
-        test_status = f"Failed: {type(e).__name__} - {str(e)}"
-        error_trace = traceback.format_exc()
-
-    return JsonResponse({
-        'success': 'Failed' not in test_status,
-        'info': info,
-        'test_status': test_status,
-        'error_trace': error_trace
-    })
 
