@@ -258,7 +258,7 @@ LOGIN_REDIRECT_URL = '/'            # Login ke baad kahan jaoge
 LOGOUT_REDIRECT_URL = '/'           # Logout ke baad kahan jaoge
 
 # Email Settings (Gmail SMTP)
-EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')  # type: ignore
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend').strip()  # type: ignore
 EMAIL_HOST = env.str('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
