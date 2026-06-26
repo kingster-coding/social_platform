@@ -257,14 +257,21 @@ ACCOUNT_SIGNUP_URL = '/accounts/register/'
 LOGIN_REDIRECT_URL = '/'            # Login ke baad kahan jaoge
 LOGOUT_REDIRECT_URL = '/'           # Logout ke baad kahan jaoge
 
-# Email Settings (Gmail SMTP)
-EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend').strip()  # type: ignore
+# Email Settings (Resend HTTP API or SMTP)
+_resend_key = env.str('RESEND_API_KEY', default='').strip()
+RESEND_API_KEY = _resend_key
+
+_default_backend = 'accounts.email_backend.ResendEmailBackend' if _resend_key else 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = env('EMAIL_BACKEND', default=_default_backend).strip()  # type: ignore
+
 EMAIL_HOST = env.str('EMAIL_HOST', default='smtp.gmail.com').strip()
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
 EMAIL_HOST_USER = env.str('EMAIL_HOST_USER', default='').strip()
 EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD', default='').strip()
-DEFAULT_FROM_EMAIL = env.str('EMAIL_HOST_USER', default='noreply@socialplatform.com').strip()
+
+_default_from = 'onboarding@resend.dev' if _resend_key else env.str('EMAIL_HOST_USER', default='noreply@socialplatform.com').strip()
+DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL', default=_default_from).strip()
 EMAIL_TIMEOUT = 10  # Seconds mein timeout set kiya taaki connection block na ho
 
 # Optional but recommended
