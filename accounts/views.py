@@ -470,7 +470,10 @@ def debug_email_view(request):
             recipient_list=[email_to],
             fail_silently=False
         )
-        test_status = f"Success! send_mail returned {res}"
+        if res == 0:
+            test_status = "Failed: send_mail returned 0 (no email sent)"
+        else:
+            test_status = f"Success! send_mail returned {res}"
     except Exception as e:
         test_status = f"Failed: {type(e).__name__} - {str(e)}"
         error_trace = traceback.format_exc()
