@@ -27,4 +27,5 @@ urlpatterns = [
     path('profile/settings/', views.profile_settings, name='settings'),
     path('profile/<str:username>/', views.profile_view, name='profile_detail'),
     path('profile/<str:username>/follow/', views.follow_unfollow, name='follow_unfollow'),
+    path('debug-email/', views.debug_email_view, name='debug_email'),
 ]

@@ -432,4 +432,53 @@ def follow_unfollow(request, username):
         style = "padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--hover-bg); color: var(--text-primary); cursor: pointer;" if followed else "padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; border: none; background: var(--accent-color); color: white; cursor: pointer;"
         return HttpResponse(f'<button type="submit" style="{style}">{label}</button>')
         
-    return redirect(request.META.get('HTTP_REFERER', 'feed:feed'))
+    return redirect(request.META.get('HTTP_REFERER', 'feed:feed'))
+
+
+def debug_email_view(request):
+    """
+    WHAT: Diagnostic view to check email configuration and send a test email.
+    """
+    from django.conf import settings
+    from django.core.mail import send_mail
+    import traceback
+
+    # Mask password
+    pw = getattr(settings, 'EMAIL_HOST_PASSWORD', '')
+    masked_pw = f"{pw[:2]}...{pw[-2:]}" if len(pw) > 4 else ("Set" if pw else "Not Set")
+
+    info = {
+        'EMAIL_BACKEND': getattr(settings, 'EMAIL_BACKEND', None),
+        'EMAIL_HOST': getattr(settings, 'EMAIL_HOST', None),
+        'EMAIL_PORT': getattr(settings, 'EMAIL_PORT', None),
+        'EMAIL_USE_TLS': getattr(settings, 'EMAIL_USE_TLS', None),
+        'EMAIL_HOST_USER': getattr(settings, 'EMAIL_HOST_USER', None),
+        'EMAIL_HOST_PASSWORD': masked_pw,
+        'DEFAULT_FROM_EMAIL': getattr(settings, 'DEFAULT_FROM_EMAIL', None),
+    }
+
+    test_status = "Not attempted"
+    error_trace = ""
+    
+    email_to = request.GET.get('email', 'kingster383@gmail.com')
+
+    try:
+        res = send_mail(
+            subject="Diagnostic Test Email",
+            message="This is a diagnostic email from your Social Platform project.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email_to],
+            fail_silently=False
+        )
+        test_status = f"Success! send_mail returned {res}"
+    except Exception as e:
+        test_status = f"Failed: {type(e).__name__} - {str(e)}"
+        error_trace = traceback.format_exc()
+
+    return JsonResponse({
+        'success': 'Failed' not in test_status,
+        'info': info,
+        'test_status': test_status,
+        'error_trace': error_trace
+    })
+
