@@ -141,9 +141,18 @@ ASGI_APPLICATION = 'core.asgi.application'  # Real-time features ke liye
 # WHY: Data store karne ke liye (users, posts, etc.)
 # Abhi SQLite use karenge (free, no setup), baad mein PostgreSQL
 
-DATABASES = {
-    'default': env.db('DATABASE_URL', default='sqlite:///db.sqlite3')  # type: ignore
-}
+import sys
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    DATABASES = {
+        'default': env.db('DATABASE_URL', default='sqlite:///db.sqlite3')  # type: ignore
+    }
 
 
 # ============================================

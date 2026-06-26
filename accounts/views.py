@@ -72,6 +72,7 @@ def register_send_otp(request):
     request.session.modified = True
 
     # Send OTP email
+    from django.conf import settings
     from django.core.mail import EmailMultiAlternatives
     full_name = f"{cd['first_name']} {cd['last_name']}"
     masked_email = cd['email'][:3] + '***@' + cd['email'].split('@')[1]
@@ -130,7 +131,7 @@ def register_send_otp(request):
         email_msg = EmailMultiAlternatives(
             subject='🔐 Verify Your Account — OTP',
             body=text_content,
-            from_email='noreply@socialplatform.com',
+            from_email=settings.DEFAULT_FROM_EMAIL,
             to=[cd['email']]
         )
         email_msg.attach_alternative(html_content, "text/html")

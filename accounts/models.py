@@ -231,11 +231,12 @@ class User(AbstractUser):
 
     def send_otp_email(self):
         """OTP generate karke HTML email bhejta hai"""
+        from django.conf import settings
         from django.core.mail import EmailMultiAlternatives
         
         otp = self.generate_otp()
         subject = '🔐 Verify Your Account — OTP'
-        from_email = 'noreply@socialplatform.com'
+        from_email = settings.DEFAULT_FROM_EMAIL
         
         # Plain text fallback (old email clients ke liye)
         text_content = (
