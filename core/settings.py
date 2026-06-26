@@ -262,7 +262,13 @@ _resend_key = env.str('RESEND_API_KEY', default='').strip()
 RESEND_API_KEY = _resend_key
 
 _default_backend = 'accounts.email_backend.ResendEmailBackend' if _resend_key else 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_BACKEND = env('EMAIL_BACKEND', default=_default_backend).strip()  # type: ignore
+
+# Railway blocks outbound SMTP ports (25, 465, 587).
+# If we are running on Railway and have a Resend API Key, we force ResendEmailBackend (HTTPS-based).
+if os.environ.get('RAILWAY_PUBLIC_DOMAIN') and _resend_key:
+    EMAIL_BACKEND = 'accounts.email_backend.ResendEmailBackend'
+else:
+    EMAIL_BACKEND = env('EMAIL_BACKEND', default=_default_backend).strip()  # type: ignore
 
 EMAIL_HOST = env.str('EMAIL_HOST', default='smtp.gmail.com').strip()
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
