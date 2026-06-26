@@ -1,68 +1,1067 @@
 {% extends 'base.html' %}
 
-{% block title %}Sign Up - Social Platform{% endblock %}
+{% block title %}Create Account — Social Platform{% endblock %}
 
 {% block content %}
 <style>
-    /* Navbar ko hide karne ke liye */
-    nav, .navbar, header { display: none !important; }
+    /* ── Hide navbar on auth pages ── */
+    nav, .navbar, header, .mobile-bottom-nav { display: none !important; }
 
-    /* Form inputs aur elements ki consistency ke liye styling */
-    input[type="email"], input[type="text"], input[type="password"], select, textarea {
-        width: 100%; padding: 0.875rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; 
-        font-size: 1rem; background: var(--bg-primary); color: var(--text-primary); transition: all 0.2s ease;
+    /* ── Google Font ── */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+    /* ════════════════════════════════
+       PAGE LAYOUT
+    ════════════════════════════════ */
+    .reg-page {
+        min-height: 100vh;
+        display: flex;
+        background: var(--bg-secondary);
+        position: relative;
+        overflow: hidden;
     }
-    input:focus {
-        outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(0, 125, 255, 0.1);
+
+    /* Decorative blobs */
+    .reg-page::before {
+        content: '';
+        position: fixed;
+        top: -180px; left: -180px;
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, rgba(24,119,242,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
     }
-    input:invalid { border-color: #ef4444; }
-    .form-group { margin-bottom: 1.25rem; }
+    .reg-page::after {
+        content: '';
+        position: fixed;
+        bottom: -150px; right: -150px;
+        width: 450px; height: 450px;
+        background: radial-gradient(circle, rgba(88,166,255,0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .reg-inner {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 2rem 1rem 3rem;
+    }
+
+    /* ════════════════════════════════
+       CARD
+    ════════════════════════════════ */
+    .reg-card {
+        width: 100%;
+        max-width: 500px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+        animation: cardIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateY(28px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ════════════════════════════════
+       HEADER
+    ════════════════════════════════ */
+    .reg-logo {
+        width: 62px; height: 62px;
+        margin: 0 auto 1.25rem;
+        background: linear-gradient(135deg, var(--accent-color), #58a6ff);
+        border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem;
+        box-shadow: 0 10px 28px rgba(24,119,242,0.35);
+        transform: rotate(-6deg);
+        transition: transform 0.3s ease;
+    }
+    .reg-logo:hover { transform: rotate(0deg) scale(1.06); }
+
+    .reg-title {
+        font-size: 1.9rem; font-weight: 900;
+        color: var(--text-primary);
+        letter-spacing: -0.04em;
+        text-align: center;
+        margin-bottom: 0.3rem;
+    }
+    .reg-sub {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.88rem;
+        margin-bottom: 1.75rem;
+    }
+
+    /* ════════════════════════════════
+       INFO BANNER
+    ════════════════════════════════ */
+    .info-banner {
+        background: linear-gradient(135deg, rgba(24,119,242,0.08), rgba(88,166,255,0.05));
+        border: 1.5px solid rgba(24,119,242,0.22);
+        border-radius: 14px;
+        padding: 13px 16px;
+        display: flex; align-items: flex-start; gap: 12px;
+        margin-bottom: 1.6rem;
+    }
+    .info-banner-icon {
+        width: 34px; height: 34px; flex-shrink: 0;
+        background: linear-gradient(135deg, #1877f2, #58a6ff);
+        border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 15px;
+    }
+    .info-banner-title { color: var(--text-primary); font-size: 0.82rem; font-weight: 700; margin: 0 0 2px; }
+    .info-banner-body  { color: var(--text-secondary); font-size: 0.78rem; margin: 0; line-height: 1.5; }
+
+    /* ════════════════════════════════
+       FORM FIELDS
+    ════════════════════════════════ */
+    .form-row {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;
+        margin-bottom: 0;
+    }
+    .form-group { margin-bottom: 1rem; }
+
+    .form-label {
+        display: flex; align-items: center; gap: 5px;
+        font-size: 0.82rem; font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.4rem;
+    }
+    .form-label .required { color: #ef4444; }
+
+    .field-wrap { position: relative; }
+
+    .field-wrap input {
+        width: 100%;
+        padding: 0.82rem 1rem 0.82rem 2.8rem;
+        border: 1.5px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 0.93rem;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        box-sizing: border-box;
+        outline: none;
+    }
+    .field-wrap input:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3.5px rgba(24,119,242,0.14);
+        background: var(--card-bg);
+    }
+    .field-wrap input.is-error {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+    }
+    .field-wrap input.is-ok {
+        border-color: #22c55e;
+        box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
+    }
+
+    .field-icon {
+        position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+        color: var(--text-secondary); font-size: 0.88rem; pointer-events: none;
+        transition: color 0.2s;
+    }
+    .field-wrap:focus-within .field-icon { color: var(--accent-color); }
+
+    .field-error {
+        color: #ef4444; font-size: 0.76rem; font-weight: 600;
+        margin-top: 0.35rem; display: flex; align-items: center; gap: 4px;
+    }
+
+    /* password toggle */
+    .pw-toggle {
+        position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+        background: none; border: none; cursor: pointer;
+        color: var(--text-secondary); padding: 4px;
+        font-size: 0.88rem; transition: color 0.2s;
+    }
+    .pw-toggle:hover { color: var(--accent-color); }
+    .pw-input { padding-right: 2.6rem !important; }
+
+    /* ════════════════════════════════
+       PASSWORD STRENGTH
+    ════════════════════════════════ */
+    .strength-wrap { height: 4px; background: var(--border-color); border-radius: 999px; margin-top: 6px; overflow: hidden; display: none; }
+    .strength-bar  { height: 100%; width: 0; border-radius: 999px; transition: width 0.35s ease, background 0.35s ease; }
+    .strength-label { font-size: 0.71rem; font-weight: 700; margin-top: 4px; display: none; }
+    .pw-match { font-size: 0.76rem; font-weight: 600; margin-top: 0.35rem; display: none; }
+
+    /* ════════════════════════════════
+       USERNAME PREVIEW BOX
+    ════════════════════════════════ */
+    .username-preview-box {
+        background: linear-gradient(135deg, rgba(24,119,242,0.07), rgba(88,166,255,0.04));
+        border: 1.5px dashed rgba(24,119,242,0.35);
+        border-radius: 14px;
+        padding: 14px 18px;
+        margin-bottom: 1.2rem;
+        display: flex; align-items: center; gap: 12px;
+        transition: opacity 0.3s, border-color 0.3s;
+    }
+    .username-preview-icon {
+        width: 38px; height: 38px; flex-shrink: 0;
+        background: linear-gradient(135deg, #1877f2, #58a6ff);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; color: white;
+    }
+    .username-preview-label { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; margin: 0 0 3px; }
+    .username-preview-value {
+        font-size: 1.05rem; font-weight: 800;
+        color: var(--accent-color);
+        letter-spacing: 0.02em;
+        font-family: 'Courier New', 'Fira Code', monospace;
+        transition: all 0.25s ease;
+    }
+    .username-preview-note { font-size: 0.73rem; color: var(--text-secondary); margin: 3px 0 0; }
+    .username-preview-shimmer { animation: shimmer 1.2s ease-in-out infinite; }
+    @keyframes shimmer {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.45; }
+    }
+
+    /* ════════════════════════════════
+       SEND OTP BUTTON
+    ════════════════════════════════ */
+    .btn-send-otp {
+        width: 100%; padding: 1rem;
+        background: linear-gradient(135deg, var(--accent-color), #3b9eff);
+        color: white; border: none; border-radius: 13px;
+        font-size: 1rem; font-weight: 800; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        letter-spacing: 0.01em;
+        transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+        box-shadow: 0 6px 20px rgba(24,119,242,0.32);
+        margin-top: 0.25rem;
+        position: relative; overflow: hidden;
+    }
+    .btn-send-otp::after {
+        content: '';
+        position: absolute; inset: 0;
+        background: rgba(255,255,255,0.12);
+        opacity: 0; transition: opacity 0.2s;
+    }
+    .btn-send-otp:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(24,119,242,0.4); }
+    .btn-send-otp:hover::after { opacity: 1; }
+    .btn-send-otp:active { transform: translateY(0); }
+    .btn-send-otp.loading { opacity: 0.75; pointer-events: none; }
+    .btn-spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    .btn-send-otp.loading .btn-spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ════════════════════════════════
+       OTP PHASE (Phase 2)
+    ════════════════════════════════ */
+    #otp-phase {
+        display: none;
+        animation: slideUp 0.42s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    #otp-phase.visible { display: block; }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .otp-header {
+        text-align: center; margin-bottom: 1.5rem;
+        padding: 1.25rem 1rem;
+        background: linear-gradient(135deg, rgba(24,119,242,0.07), rgba(88,166,255,0.04));
+        border-radius: 14px;
+        border: 1px solid rgba(24,119,242,0.14);
+    }
+    .otp-header-icon { font-size: 2.2rem; margin-bottom: 0.5rem; display: block; }
+    .otp-header-title { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px; }
+    .otp-header-sub   { font-size: 0.82rem; color: var(--text-secondary); margin: 0; }
+    .otp-header-email { color: var(--accent-color); font-weight: 700; }
+
+    /* 6 individual OTP boxes */
+    .otp-boxes {
+        display: flex; gap: 10px; justify-content: center;
+        margin-bottom: 1.25rem;
+    }
+    .otp-box {
+        width: 52px; height: 58px;
+        border: 2px solid var(--border-color);
+        border-radius: 13px;
+        font-size: 1.5rem; font-weight: 800;
+        text-align: center;
+        background: var(--bg-primary); color: var(--text-primary);
+        transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+        outline: none;
+        caret-color: var(--accent-color);
+        font-family: 'Courier New', monospace;
+    }
+    .otp-box:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3.5px rgba(24,119,242,0.15);
+        transform: scale(1.06);
+    }
+    .otp-box.filled {
+        border-color: var(--accent-color);
+        background: rgba(24,119,242,0.06);
+        animation: popIn 0.18s ease;
+    }
+    @keyframes popIn {
+        0% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+
+    /* OTP error */
+    #otp-error {
+        color: #ef4444; font-size: 0.8rem; font-weight: 600;
+        text-align: center; margin-bottom: 0.75rem; display: none;
+        animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+        0%,100% { transform: translateX(0); }
+        20%,60% { transform: translateX(-5px); }
+        40%,80% { transform: translateX(5px); }
+    }
+
+    /* Create Account button */
+    .btn-register {
+        width: 100%; padding: 1rem;
+        background: linear-gradient(135deg, #16a34a, #22c55e);
+        color: white; border: none; border-radius: 13px;
+        font-size: 1rem; font-weight: 800; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+        box-shadow: 0 6px 20px rgba(34,197,94,0.32);
+        margin-bottom: 1rem;
+        position: relative; overflow: hidden;
+    }
+    .btn-register:disabled {
+        background: var(--border-color);
+        color: var(--text-secondary);
+        box-shadow: none; cursor: not-allowed; transform: none;
+    }
+    .btn-register:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(34,197,94,0.4); }
+    .btn-register.loading { opacity: 0.75; pointer-events: none; }
+    .btn-register.loading .btn-spinner { display: block; }
+
+    /* Resend OTP */
+    .resend-wrap { text-align: center; }
+    .resend-btn {
+        background: none; border: none; cursor: pointer;
+        color: var(--accent-color); font-weight: 700; font-size: 0.85rem;
+        padding: 4px 8px; border-radius: 6px;
+        transition: background 0.2s;
+    }
+    .resend-btn:hover { background: rgba(24,119,242,0.08); }
+    .resend-btn:disabled { color: var(--text-secondary); cursor: not-allowed; }
+    .resend-timer { color: var(--text-secondary); font-size: 0.82rem; font-weight: 600; }
+
+    /* Back to form link */
+    .back-link {
+        display: block; text-align: center;
+        color: var(--text-secondary); font-size: 0.8rem;
+        cursor: pointer; margin-top: 0.5rem;
+        transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--text-primary); }
+
+    /* ════════════════════════════════
+       DIVIDER & FOOTER
+    ════════════════════════════════ */
+    .reg-divider {
+        border: none; border-top: 1px solid var(--border-color);
+        margin: 1.6rem 0 1.4rem;
+    }
+    .reg-login-link {
+        text-align: center;
+        display: block;
+        padding: 0.9rem;
+        border: 1.5px solid var(--border-color);
+        border-radius: 12px;
+        color: var(--accent-color);
+        font-weight: 700; font-size: 0.93rem;
+        text-decoration: none;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    .reg-login-link:hover {
+        border-color: var(--accent-color);
+        background: rgba(24,119,242,0.05);
+    }
+    .reg-footer-note {
+        text-align: center; color: var(--text-secondary);
+        font-size: 0.72rem; margin-top: 1.2rem; line-height: 1.55;
+    }
+
+    /* ════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════ */
+    @media (max-width: 540px) {
+        .reg-inner { padding: 1rem 0.5rem 2rem; }
+        .reg-card  { padding: 1.75rem 1.25rem; border-radius: 18px; }
+        .form-row  { grid-template-columns: 1fr; }
+        .otp-box   { width: 44px; height: 52px; font-size: 1.3rem; }
+        .reg-title { font-size: 1.55rem; }
+    }
 </style>
 
-<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; background: var(--bg-primary);">
-    <div style="max-width: 450px; width: 100%;">
-        <!-- Auth Card -->
-        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <div style="width: 64px; height: 64px; margin: 0 auto 1.25rem; background: linear-gradient(135deg, var(--accent-color), #58a6ff); border-radius: 16px; display: flex; align-items: center; justify-content: center; transform: rotate(-10deg);">
-                    <i class="fas fa-user-plus" style="color: white; font-size: 1.5rem; transform: rotate(10deg);"></i>
+<div class="reg-page">
+    <div class="reg-inner">
+        <div class="reg-card">
+
+            <!-- ── Header ── -->
+            <div style="text-align:center;">
+                <div class="reg-logo">🚀</div>
+                <h1 class="reg-title">Join Us Today</h1>
+                <p class="reg-sub">Connect, share, and grow with your community.</p>
+            </div>
+
+            <!-- ── Info Banner ── -->
+            <div class="info-banner">
+                <div class="info-banner-icon">📧</div>
+                <div>
+                    <p class="info-banner-title">Email Verification Required</p>
+                    <p class="info-banner-body">
+                        Details fill karne ke baad aapke email par ek
+                        <strong style="color:var(--accent-color);">6-digit OTP</strong> aayega.
+                        OTP verify hone ke baad hi account create hoga.
+                    </p>
                 </div>
-                <h1 style="color: var(--text-primary); font-size: 1.85rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.025em;">Join Us</h1>
-                <p style="color: var(--text-secondary); font-size: 0.95rem;">Connect with friends and share your world.</p>
             </div>
 
-            <form method="post" novalidate>
-                {% csrf_token %}
-                
-                {% for field in form %}
+            <!-- ══════════════════════════════
+                 PHASE 1 — Registration Form
+            ══════════════════════════════ -->
+            <div id="phase1">
+                <form id="reg-form" novalidate autocomplete="off">
+                    {% csrf_token %}
+
+                    <!-- Name Row -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="id_first_name">
+                                <i class="fas fa-user" style="font-size:.78rem;color:var(--text-secondary);"></i>
+                                First Name <span class="required">*</span>
+                            </label>
+                            <div class="field-wrap">
+                                <i class="fas fa-user field-icon"></i>
+                                <input type="text" id="id_first_name" name="first_name"
+                                       placeholder="Mayank" autocomplete="given-name">
+                            </div>
+                            <div class="field-error" id="err_first_name" style="display:none;"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="id_last_name">
+                                <i class="fas fa-user" style="font-size:.78rem;color:var(--text-secondary);"></i>
+                                Last Name <span class="required">*</span>
+                            </label>
+                            <div class="field-wrap">
+                                <i class="fas fa-user-tag field-icon"></i>
+                                <input type="text" id="id_last_name" name="last_name"
+                                       placeholder="Sharma" autocomplete="family-name">
+                            </div>
+                            <div class="field-error" id="err_last_name" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
                     <div class="form-group">
-                        <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary); font-size: 0.9rem; font-weight: 600;">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}<small style="color: var(--text-secondary); display: block; margin-top: 0.35rem; font-size: 0.75rem;">{{ field.help_text }}</small>{% endif %}
-                        {% for error in field.errors %}
-                            <p style="color: #ef4444; font-size: 0.8rem; margin-top: 0.35rem; font-weight: 500;">{{ error }}</p>
-                        {% endfor %}
+                        <label class="form-label" for="id_email">
+                            <i class="fas fa-envelope" style="font-size:.78rem;color:var(--text-secondary);"></i>
+                            Email Address <span class="required">*</span>
+                        </label>
+                        <div class="field-wrap">
+                            <i class="fas fa-envelope field-icon"></i>
+                            <input type="email" id="id_email" name="email"
+                                   placeholder="you@example.com" autocomplete="email">
+                        </div>
+                        <div class="field-error" id="err_email" style="display:none;"></div>
                     </div>
-                {% endfor %}
 
-                {% if form.non_field_errors %}
-                    <div style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 0.75rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.875rem;">
-                        {{ form.non_field_errors }}
+                    <!-- Phone -->
+                    <div class="form-group">
+                        <label class="form-label" for="id_phone_number">
+                            <i class="fas fa-mobile-alt" style="font-size:.78rem;color:var(--text-secondary);"></i>
+                            Phone Number <span class="required">*</span>
+                        </label>
+                        <div class="field-wrap">
+                            <i class="fas fa-mobile-alt field-icon"></i>
+                            <input type="tel" id="id_phone_number" name="phone_number"
+                                   placeholder="9876543210" inputmode="tel" autocomplete="tel"
+                                   maxlength="15">
+                        </div>
+                        <div class="field-error" id="err_phone_number" style="display:none;"></div>
                     </div>
-                {% endif %}
 
-                <button type="submit" style="width: 100%; padding: 1rem; background: var(--accent-color); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.2s, opacity 0.2s; margin-top: 0.5rem;">
-                    Sign Up
-                </button>
-            </form>
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label class="form-label" for="id_password1">
+                            <i class="fas fa-lock" style="font-size:.78rem;color:var(--text-secondary);"></i>
+                            Password <span class="required">*</span>
+                        </label>
+                        <div class="field-wrap">
+                            <i class="fas fa-lock field-icon"></i>
+                            <input type="password" id="id_password1" name="password1"
+                                   placeholder="Min. 8 characters" class="pw-input" autocomplete="new-password">
+                            <button type="button" class="pw-toggle" onclick="togglePw('id_password1', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="strength-wrap" id="strength-wrap">
+                            <div class="strength-bar" id="strength-bar"></div>
+                        </div>
+                        <div class="strength-label" id="strength-label"></div>
+                        <div class="field-error" id="err_password1" style="display:none;"></div>
+                    </div>
 
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); text-align: center;">
-                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">Already have an account?</p>
-                <a href="{% url 'account_login' %}" style="display: block; width: 100%; padding: 0.875rem; background: transparent; color: var(--accent-color); text-decoration: none; border: 1px solid var(--accent-color); border-radius: 10px; font-weight: 600; transition: all 0.2s;">
-                    Log In
-                </a>
+                    <!-- Confirm Password -->
+                    <div class="form-group">
+                        <label class="form-label" for="id_password2">
+                            <i class="fas fa-lock" style="font-size:.78rem;color:var(--text-secondary);"></i>
+                            Confirm Password <span class="required">*</span>
+                        </label>
+                        <div class="field-wrap">
+                            <i class="fas fa-shield-alt field-icon"></i>
+                            <input type="password" id="id_password2" name="password2"
+                                   placeholder="Repeat password" class="pw-input" autocomplete="new-password">
+                            <button type="button" class="pw-toggle" onclick="togglePw('id_password2', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="pw-match" id="pw-match"></div>
+                        <div class="field-error" id="err_password2" style="display:none;"></div>
+                    </div>
+
+                    <!-- ── Username Preview Box ── -->
+                    <div class="username-preview-box" id="username-preview-box">
+                        <div class="username-preview-icon">🆔</div>
+                        <div style="flex:1; min-width:0;">
+                            <p class="username-preview-label">Your Auto-Generated Username</p>
+                            <p class="username-preview-value" id="username-preview-val">
+                                — Fill name & phone to see preview
+                            </p>
+                            <p class="username-preview-note">
+                                🔒 Permanent &amp; cannot be changed without 500 coins
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- ── Global Error ── -->
+                    <div id="global-error" style="display:none; background:#fef2f2; border:1px solid #fecaca;
+                         color:#dc2626; padding:0.75rem 1rem; border-radius:10px; font-size:0.83rem;
+                         margin-bottom:1rem; font-weight:600;"></div>
+
+                    <!-- ── Send OTP Button ── -->
+                    <button type="submit" id="btn-send-otp" class="btn-send-otp">
+                        <div class="btn-spinner"></div>
+                        <i class="fas fa-paper-plane btn-icon"></i>
+                        <span class="btn-text">Send OTP to Email</span>
+                    </button>
+                </form>
             </div>
+
+            <!-- ══════════════════════════════
+                 PHASE 2 — OTP Verification
+            ══════════════════════════════ -->
+            <div id="otp-phase">
+
+                <!-- OTP Header -->
+                <div class="otp-header">
+                    <span class="otp-header-icon">📬</span>
+                    <p class="otp-header-title">Check Your Email</p>
+                    <p class="otp-header-sub">
+                        OTP bheja gaya: <span class="otp-header-email" id="otp-masked-email"></span>
+                    </p>
+                </div>
+
+                <!-- OTP Label -->
+                <p style="text-align:center; font-size:0.82rem; font-weight:700;
+                          color:var(--text-secondary); margin-bottom:0.85rem; letter-spacing:0.5px;
+                          text-transform:uppercase;">
+                    Enter 6-digit OTP
+                </p>
+
+                <!-- 6 OTP Boxes -->
+                <div class="otp-boxes" id="otp-boxes">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                           pattern="[0-9]" id="otp-0" autocomplete="one-time-code">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                           pattern="[0-9]" id="otp-1">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                           pattern="[0-9]" id="otp-2">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                           pattern="[0-9]" id="otp-3">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                           pattern="[0-9]" id="otp-4">
+                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric"
+                           pattern="[0-9]" id="otp-5">
+                </div>
+
+                <!-- OTP Error -->
+                <div id="otp-error">⚠ <span id="otp-error-msg"></span></div>
+
+                <!-- Create Account Button -->
+                <button id="btn-register" class="btn-register" disabled>
+                    <div class="btn-spinner"></div>
+                    <i class="fas fa-user-check btn-icon"></i>
+                    <span class="btn-text">Create My Account</span>
+                </button>
+
+                <!-- Resend OTP -->
+                <div class="resend-wrap">
+                    <span class="resend-timer" id="resend-timer">Resend OTP in <strong id="resend-countdown">59</strong>s</span>
+                    <button class="resend-btn" id="resend-btn" style="display:none;"
+                            onclick="resendOTP()">
+                        <i class="fas fa-rotate-right"></i> Resend OTP
+                    </button>
+                </div>
+
+                <!-- Back link -->
+                <span class="back-link" onclick="goBackToForm()">
+                    ← Go back &amp; edit details
+                </span>
+            </div>
+
+            <!-- ── Divider + Login Link ── -->
+            <hr class="reg-divider">
+            <a href="{% url 'account_login' %}" class="reg-login-link">
+                Already have an account? <strong>Log In</strong>
+            </a>
+
+            <p class="reg-footer-note">
+                By signing up, you agree to our
+                <a href="#" style="color:var(--accent-color);text-decoration:none;">Terms of Service</a>
+                and
+                <a href="#" style="color:var(--accent-color);text-decoration:none;">Privacy Policy</a>.
+            </p>
         </div>
     </div>
 </div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════════
+const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+
+function getCookie(name) {
+    const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : '';
+}
+
+function getCSRF() {
+    return getCookie('csrftoken') || '{{ csrf_token }}';
+}
+
+function setFieldError(fieldId, msg) {
+    const inp = document.getElementById('id_' + fieldId);
+    const err = document.getElementById('err_' + fieldId);
+    if (inp)  inp.classList.add('is-error');
+    if (err)  { err.innerHTML = '⚠ ' + msg; err.style.display = 'flex'; }
+}
+function clearFieldError(fieldId) {
+    const inp = document.getElementById('id_' + fieldId);
+    const err = document.getElementById('err_' + fieldId);
+    if (inp)  inp.classList.remove('is-error');
+    if (err)  err.style.display = 'none';
+}
+function setFieldOk(fieldId) {
+    const inp = document.getElementById('id_' + fieldId);
+    if (inp) { inp.classList.remove('is-error'); inp.classList.add('is-ok'); }
+}
+
+// ═══════════════════════════════════════════════════
+// PASSWORD TOGGLE
+// ═══════════════════════════════════════════════════
+function togglePw(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        inp.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+// ═══════════════════════════════════════════════════
+// PASSWORD STRENGTH METER
+// ═══════════════════════════════════════════════════
+const pw1 = document.getElementById('id_password1');
+const pw2 = document.getElementById('id_password2');
+
+if (pw1) {
+    pw1.addEventListener('input', function() {
+        const val = this.value;
+        const wrap  = document.getElementById('strength-wrap');
+        const bar   = document.getElementById('strength-bar');
+        const label = document.getElementById('strength-label');
+
+        if (!val) { wrap.style.display = 'none'; label.style.display = 'none'; return; }
+
+        wrap.style.display = 'block';
+        label.style.display = 'block';
+
+        let score = 0;
+        if (val.length >= 8)         score++;
+        if (/[A-Z]/.test(val))       score++;
+        if (/[0-9]/.test(val))       score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        const levels = [
+            { pct:'20%', color:'#ef4444', text:'😟 Very Weak' },
+            { pct:'40%', color:'#f97316', text:'😐 Weak' },
+            { pct:'65%', color:'#eab308', text:'🙂 Fair' },
+            { pct:'85%', color:'#22c55e', text:'😊 Strong' },
+            { pct:'100%', color:'#16a34a', text:'💪 Very Strong' },
+        ];
+        const lvl = levels[Math.min(score, 4)];
+        bar.style.width     = lvl.pct;
+        bar.style.background = lvl.color;
+        label.textContent   = lvl.text;
+        label.style.color   = lvl.color;
+
+        checkPwMatch();
+    });
+}
+
+if (pw2) {
+    pw2.addEventListener('input', checkPwMatch);
+}
+
+function checkPwMatch() {
+    const match = document.getElementById('pw-match');
+    const v1 = pw1.value, v2 = pw2.value;
+    if (!v2) { match.style.display = 'none'; return; }
+    match.style.display = 'block';
+    if (v1 === v2) {
+        match.textContent = '✅ Passwords match';
+        match.style.color = '#22c55e';
+        setFieldOk('password2');
+    } else {
+        match.textContent = '❌ Passwords do not match';
+        match.style.color = '#ef4444';
+        document.getElementById('id_password2').classList.remove('is-ok');
+    }
+}
+
+// ═══════════════════════════════════════════════════
+// LIVE USERNAME PREVIEW
+// ═══════════════════════════════════════════════════
+let previewTimer = null;
+
+function updateUsernamePreview() {
+    const firstName = document.getElementById('id_first_name').value.trim();
+    const lastName  = document.getElementById('id_last_name').value.trim();
+    const phone     = document.getElementById('id_phone_number').value.trim();
+    const previewEl = document.getElementById('username-preview-val');
+
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    if (!firstName || !phone) {
+        previewEl.textContent = '— Fill name & phone to see preview';
+        previewEl.style.opacity = '0.5';
+        return;
+    }
+
+    // Show shimmer while fetching
+    previewEl.classList.add('username-preview-shimmer');
+    previewEl.textContent = 'Generating…';
+
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => {
+        const params = new URLSearchParams({ full_name: fullName, email: '', phone: phone });
+        fetch(`/accounts/register/username-preview/?${params}`)
+            .then(r => r.json())
+            .then(data => {
+                previewEl.classList.remove('username-preview-shimmer');
+                if (data.username) {
+                    previewEl.textContent = '@' + data.username;
+                    previewEl.style.opacity = '1';
+                } else {
+                    previewEl.textContent = '— Enter valid name & phone';
+                    previewEl.style.opacity = '0.5';
+                }
+            })
+            .catch(() => {
+                previewEl.classList.remove('username-preview-shimmer');
+                previewEl.textContent = '— Preview unavailable';
+                previewEl.style.opacity = '0.5';
+            });
+    }, 500); // 500ms debounce
+}
+
+['id_first_name', 'id_last_name', 'id_phone_number'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateUsernamePreview);
+});
+
+// ═══════════════════════════════════════════════════
+// OTP BOXES — Auto jump, backspace, paste
+// ═══════════════════════════════════════════════════
+const otpBoxes = Array.from(document.querySelectorAll('.otp-box'));
+
+otpBoxes.forEach((box, idx) => {
+    box.addEventListener('input', function(e) {
+        const val = this.value.replace(/\D/g, '').slice(0,1);
+        this.value = val;
+
+        if (val) {
+            this.classList.add('filled');
+            if (idx < 5) otpBoxes[idx+1].focus();
+        } else {
+            this.classList.remove('filled');
+        }
+        checkOTPComplete();
+    });
+
+    box.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace') {
+            if (!this.value && idx > 0) {
+                otpBoxes[idx-1].value = '';
+                otpBoxes[idx-1].classList.remove('filled');
+                otpBoxes[idx-1].focus();
+            }
+            this.classList.remove('filled');
+            checkOTPComplete();
+        }
+        if (e.key === 'ArrowLeft' && idx > 0) otpBoxes[idx-1].focus();
+        if (e.key === 'ArrowRight' && idx < 5) otpBoxes[idx+1].focus();
+    });
+
+    box.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'');
+        pasted.split('').slice(0,6).forEach((ch, i) => {
+            if (otpBoxes[idx + i]) {
+                otpBoxes[idx + i].value = ch;
+                otpBoxes[idx + i].classList.add('filled');
+            }
+        });
+        const nextEmpty = otpBoxes.findIndex((b, i) => i >= idx && !b.value);
+        if (nextEmpty !== -1) otpBoxes[nextEmpty].focus();
+        else otpBoxes[5].focus();
+        checkOTPComplete();
+    });
+
+    // Click on any box: allow only if previous filled
+    box.addEventListener('focus', function() {
+        // Find first empty, redirect focus there
+        const firstEmpty = otpBoxes.findIndex(b => !b.value);
+        if (firstEmpty !== -1 && firstEmpty < idx) {
+            otpBoxes[firstEmpty].focus();
+        }
+    });
+});
+
+function getOTPValue() {
+    return otpBoxes.map(b => b.value).join('');
+}
+
+function checkOTPComplete() {
+    const otp = getOTPValue();
+    const btn = document.getElementById('btn-register');
+    btn.disabled = otp.length !== 6;
+}
+
+// ═══════════════════════════════════════════════════
+// PHASE 1 FORM SUBMIT — Send OTP
+// ═══════════════════════════════════════════════════
+document.getElementById('reg-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    // Clear all previous errors
+    ['first_name','last_name','email','phone_number','password1','password2'].forEach(clearFieldError);
+    ['id_first_name','id_last_name','id_email','id_phone_number','id_password1','id_password2']
+        .forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('is-ok','is-error'); });
+
+    const btn = document.getElementById('btn-send-otp');
+    const globalErr = document.getElementById('global-error');
+    globalErr.style.display = 'none';
+
+    btn.classList.add('loading');
+    btn.querySelector('.btn-text').textContent = 'Sending OTP…';
+    btn.querySelector('.btn-icon').style.display = 'none';
+
+    const formData = new FormData(this);
+
+    try {
+        const resp = await fetch('{% url "accounts:register_send_otp" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRF() },
+            body: formData,
+        });
+
+        const data = await resp.json();
+
+        if (data.success) {
+            // Show OTP phase
+            document.getElementById('phase1').style.display = 'none';
+            const otpPhase = document.getElementById('otp-phase');
+            otpPhase.classList.add('visible');
+            document.getElementById('otp-masked-email').textContent = data.masked_email;
+            // Focus first OTP box
+            otpBoxes[0].focus();
+            // Start resend timer
+            startResendTimer();
+        } else {
+            if (data.errors) {
+                let hasFieldError = false;
+                for (const [field, msgs] of Object.entries(data.errors)) {
+                    if (field === '__all__') {
+                        globalErr.innerHTML = '⚠ ' + msgs.join('<br>');
+                        globalErr.style.display = 'block';
+                    } else {
+                        setFieldError(field, msgs[0]);
+                        hasFieldError = true;
+                    }
+                }
+            } else {
+                globalErr.innerHTML = '⚠ ' + (data.error || 'Kuch problem hui. Phir try karein.');
+                globalErr.style.display = 'block';
+            }
+        }
+    } catch (err) {
+        globalErr.innerHTML = '⚠ Network error. Internet connection check karein.';
+        globalErr.style.display = 'block';
+    } finally {
+        btn.classList.remove('loading');
+        btn.querySelector('.btn-text').textContent = 'Send OTP to Email';
+        btn.querySelector('.btn-icon').style.display = '';
+    }
+});
+
+// ═══════════════════════════════════════════════════
+// PHASE 2 — Create Account (OTP Verify)
+// ═══════════════════════════════════════════════════
+document.getElementById('btn-register').addEventListener('click', async function() {
+    const otp = getOTPValue();
+    const otpErr = document.getElementById('otp-error');
+    const otpErrMsg = document.getElementById('otp-error-msg');
+    otpErr.style.display = 'none';
+
+    if (otp.length !== 6) return;
+
+    this.classList.add('loading');
+    this.querySelector('.btn-text').textContent = 'Creating account…';
+    this.querySelector('.btn-icon').style.display = 'none';
+
+    try {
+        const resp = await fetch('{% url "accounts:register_verify_otp" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRF(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ otp }),
+        });
+
+        const data = await resp.json();
+
+        if (data.success) {
+            // Show success message then redirect
+            this.querySelector('.btn-text').textContent = '🎉 Account Created! Redirecting…';
+            this.style.background = 'linear-gradient(135deg, #16a34a, #4ade80)';
+            setTimeout(() => {
+                window.location.href = data.redirect || '/feed/';
+            }, 1000);
+        } else {
+            otpErrMsg.textContent = data.error || 'Kuch problem hui.';
+            otpErr.style.display = 'block';
+            // Shake OTP boxes on error
+            document.getElementById('otp-boxes').style.animation = 'none';
+            setTimeout(() => {
+                document.getElementById('otp-boxes').style.animation = '';
+            }, 10);
+
+            this.classList.remove('loading');
+            this.querySelector('.btn-text').textContent = 'Create My Account';
+            this.querySelector('.btn-icon').style.display = '';
+        }
+    } catch (err) {
+        otpErrMsg.textContent = 'Network error. Internet connection check karein.';
+        otpErr.style.display = 'block';
+        this.classList.remove('loading');
+        this.querySelector('.btn-text').textContent = 'Create My Account';
+        this.querySelector('.btn-icon').style.display = '';
+    }
+});
+
+// ═══════════════════════════════════════════════════
+// RESEND OTP TIMER
+// ═══════════════════════════════════════════════════
+let resendInterval = null;
+
+function startResendTimer() {
+    let seconds = 59;
+    const timerEl = document.getElementById('resend-timer');
+    const countEl = document.getElementById('resend-countdown');
+    const resendBtn = document.getElementById('resend-btn');
+
+    timerEl.style.display = 'inline';
+    resendBtn.style.display = 'none';
+    countEl.textContent = seconds;
+
+    clearInterval(resendInterval);
+    resendInterval = setInterval(() => {
+        seconds--;
+        countEl.textContent = seconds;
+        if (seconds <= 0) {
+            clearInterval(resendInterval);
+            timerEl.style.display = 'none';
+            resendBtn.style.display = 'inline';
+        }
+    }, 1000);
+}
+
+async function resendOTP() {
+    const resendBtn = document.getElementById('resend-btn');
+    resendBtn.disabled = true;
+    resendBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Sending…';
+
+    const formData = new FormData(document.getElementById('reg-form'));
+    try {
+        const resp = await fetch('{% url "accounts:register_send_otp" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRF() },
+            body: formData,
+        });
+        const data = await resp.json();
+        if (data.success) {
+            // Clear OTP boxes
+            otpBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+            checkOTPComplete();
+            otpBoxes[0].focus();
+            startResendTimer();
+
+            const otpErr = document.getElementById('otp-error');
+            otpErr.style.display = 'none';
+        }
+    } catch(e) {}
+
+    resendBtn.disabled = false;
+    resendBtn.innerHTML = '<i class="fas fa-rotate-right"></i> Resend OTP';
+}
+
+// ═══════════════════════════════════════════════════
+// BACK TO FORM
+// ═══════════════════════════════════════════════════
+function goBackToForm() {
+    document.getElementById('otp-phase').classList.remove('visible');
+    document.getElementById('phase1').style.display = 'block';
+    // Clear OTP boxes
+    otpBoxes.forEach(b => { b.value = ''; b.classList.remove('filled'); });
+    clearInterval(resendInterval);
+}
+</script>
+
 {% endblock %}

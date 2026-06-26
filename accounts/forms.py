@@ -1,33 +1,163 @@
+"""
+WHAT: Forms for accounts app
+WHY: Custom registration form (Name, Email, Phone, Password) + OTP verification
+"""
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.password_validation import validate_password
+from django.core.validators import RegexValidator
 from allauth.account.forms import SignupForm
 from .models import User, Profile
 from typing import cast
+import re
 
-class CustomSignupForm(SignupForm):
-    """
-    WHAT: Custom Signup Form for django-allauth
-    WHY: Required by settings.py to ensure compatibility with our custom User model
-    """
-    def save(self, request):
-        user = cast(User, super().save(request))
-        # OTP email yahan bhejo — sirf actual web signup par, createsuperuser par nahi
-        try:
-            user.send_otp_email()
-        except Exception:
-            pass  # Email fail hone pe signup block nahi hoga
-        return user
 
+# ============================================
+# STEP 1 — REGISTRATION FORM
+# ============================================
+class RegisterStep1Form(forms.Form):
+    """
+    WHAT: Custom registration form — replaces allauth default signup
+    WHY: We need full_name + phone_number fields.
+         Username is auto-generated, user does NOT set it.
+    """
+    phone_validator = RegexValidator(
+        regex=r'^\+?[0-9]{10,15}$',
+        message=_('Enter a valid phone number (10-15 digits, optionally starting with +)')
+    )
+
+    first_name = forms.CharField(
+        max_length=50,
+        label=_('First Name'),
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Mayank',
+            'id': 'id_first_name',
+            'autocomplete': 'given-name',
+        })
+    )
+
+    last_name = forms.CharField(
+        max_length=50,
+        label=_('Last Name'),
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Sharma',
+            'id': 'id_last_name',
+            'autocomplete': 'family-name',
+        })
+    )
+
+    email = forms.EmailField(
+        label=_('Email Address'),
+        widget=forms.EmailInput(attrs={
+            'placeholder': 'you@example.com',
+            'id': 'id_email',
+            'autocomplete': 'email',
+        })
+    )
+
+    phone_number = forms.CharField(
+        max_length=15,
+        label=_('Phone Number'),
+        validators=[phone_validator],
+        widget=forms.TextInput(attrs={
+            'placeholder': '9876543210',
+            'id': 'id_phone_number',
+            'inputmode': 'tel',
+            'autocomplete': 'tel',
+        })
+    )
+
+    password1 = forms.CharField(
+        label=_('Password'),
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Min 8 characters',
+            'id': 'id_password1',
+            'autocomplete': 'new-password',
+        })
+    )
+
+    password2 = forms.CharField(
+        label=_('Confirm Password'),
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Repeat password',
+            'id': 'id_password2',
+            'autocomplete': 'new-password',
+        })
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email', '').lower().strip()
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError(
+                _('This email is already registered. Please log in instead.')
+            )
+        return email
+
+    def clean_phone_number(self):
+        phone = re.sub(r'\s+', '', self.cleaned_data.get('phone_number', ''))
+        # Strip leading + for storage but keep digits only check
+        digits = re.sub(r'\D', '', phone)
+        if len(digits) < 10:
+            raise forms.ValidationError(_('Phone number must have at least 10 digits.'))
+        if User.objects.filter(phone_number=phone).exists():
+            raise forms.ValidationError(
+                _('This phone number is already registered.')
+            )
+        return phone
+
+    def clean_password1(self):
+        password = self.cleaned_data.get('password1')
+        if password:
+            validate_password(password)
+        return password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pw1 = cleaned_data.get('password1')
+        pw2 = cleaned_data.get('password2')
+        if pw1 and pw2 and pw1 != pw2:
+            self.add_error('password2', _('Passwords do not match.'))
+        return cleaned_data
+
+
+# ============================================
+# OTP VERIFICATION FORM
+# ============================================
 class OTPVerificationForm(forms.Form):
     """
-    WHAT: Form to take 6-digit OTP from user
+    WHAT: Form to take 6-digit OTP from user (used in verify_otp page)
     """
     otp = forms.CharField(
         max_length=6,
         min_length=6,
-        widget=forms.TextInput(attrs={'placeholder': '123456', 'class': 'form-control text-center', 'autocomplete': 'one-time-code'})
+        widget=forms.TextInput(attrs={
+            'placeholder': '123456',
+            'class': 'form-control text-center',
+            'autocomplete': 'one-time-code'
+        })
     )
 
+
+# ============================================
+# ALLAUTH COMPAT — kept for admin/social logins
+# ============================================
+class CustomSignupForm(SignupForm):
+    """
+    WHAT: Fallback allauth signup form (for admin/social login compatibility)
+    WHY: Required by settings.py ACCOUNT_FORMS
+    """
+    def save(self, request):
+        user = cast(User, super().save(request))
+        try:
+            user.send_otp_email()
+        except Exception:
+            pass
+        return user
+
+
+# ============================================
+# PROFILE EDIT FORM
+# ============================================
 class UserProfileForm(forms.ModelForm):
     """
     WHAT: Unified form for editing custom User fields and linked Profile fields
@@ -84,6 +214,10 @@ class UserProfileForm(forms.ModelForm):
             profile.save()
         return user
 
+
+# ============================================
+# SETTINGS FORM
+# ============================================
 class UserSettingsForm(forms.ModelForm):
     """
     WHAT: Form for managing privacy settings
@@ -94,4 +228,3 @@ class UserSettingsForm(forms.ModelForm):
         widgets = {
             'is_private': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-

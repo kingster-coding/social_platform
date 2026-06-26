@@ -234,13 +234,17 @@ AUTHENTICATION_BACKENDS = [
 # WHY: Naye version mein zyada flexible signup configuration
 
 ACCOUNT_FORMS = {
-    'signup': 'accounts.forms.CustomSignupForm',
+    'signup': 'accounts.forms.CustomSignupForm',  # Fallback for admin/social login
 }
 ACCOUNT_ADAPTER = 'accounts.adapter.AccountAdapter'
 
 ACCOUNT_LOGIN_METHODS = {'email'}  # Email se login hoga (NEW in Django 6.x)
-ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Development mein optional rakha hai
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Our custom OTP handles verification
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']  # NEW format
+
+# ⭐ Custom signup URL — allauth ke /accounts/signup/ ko hamare /accounts/register/ par redirect karo
+ACCOUNT_SIGNUP_URL = '/accounts/register/'
+
 LOGIN_REDIRECT_URL = '/'            # Login ke baad kahan jaoge
 LOGOUT_REDIRECT_URL = '/'           # Logout ke baad kahan jaoge
 

@@ -1,97 +1,519 @@
 {% extends 'base.html' %}
 
-{% block title %}Verify Email - Social Platform{% endblock %}
+{% block title %}Verify Your Email — OTP{% endblock %}
 
 {% block content %}
 <style>
-    /* Form styling */
-    input[name="otp"] {
-        width: 100%;
-        padding: 1rem;
+    /* Navbar hide on auth pages */
+    nav, .navbar, header { display: none !important; }
+
+    /* === OTP DIGIT BOXES === */
+    .otp-inputs {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+    .otp-digit {
+        width: 52px;
+        height: 62px;
         border: 2px solid var(--border-color);
         border-radius: 12px;
-        font-size: 1.75rem;
-        letter-spacing: 0.5em;
+        font-size: 1.6rem;
+        font-weight: 800;
         text-align: center;
         background: var(--bg-primary);
         color: var(--text-primary);
-        transition: all 0.2s ease;
-        font-weight: 700;
-    }
-    input[name="otp"]::placeholder {
-        letter-spacing: normal;
-        font-size: 1.25rem;
-        font-weight: normal;
-        opacity: 0.5;
-    }
-    input[name="otp"]:focus {
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        caret-color: var(--accent-color);
         outline: none;
+        -moz-appearance: textfield;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0;
+    }
+    .otp-digit::-webkit-outer-spin-button,
+    .otp-digit::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .otp-digit:focus {
         border-color: var(--accent-color);
         box-shadow: 0 0 0 4px rgba(24, 119, 242, 0.15);
+        transform: translateY(-2px);
     }
+    .otp-digit.filled {
+        border-color: var(--accent-color);
+        background: rgba(24, 119, 242, 0.06);
+    }
+    .otp-digit.shake {
+        animation: shake 0.4s ease;
+    }
+    .otp-digit.success {
+        border-color: #22c55e !important;
+        background: rgba(34, 197, 94, 0.08) !important;
+        animation: popIn 0.25s ease;
+    }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-5px); }
+        40% { transform: translateX(5px); }
+        60% { transform: translateX(-4px); }
+        80% { transform: translateX(4px); }
+    }
+    @keyframes popIn {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1) translateY(-2px); }
+        100% { transform: scale(1) translateY(-2px); }
+    }
+
+    /* === VERIFY BUTTON === */
+    #verify-btn {
+        width: 100%;
+        padding: 1rem;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        letter-spacing: 0.01em;
+    }
+    #verify-btn:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(24,119,242,0.35);
+    }
+    #verify-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    #verify-btn.loading { opacity: 0.7; pointer-events: none; }
+    .btn-spinner {
+        width: 18px; height: 18px;
+        border: 2.5px solid rgba(255,255,255,0.4);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        display: none;
+    }
+    #verify-btn.loading .btn-spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* === RESEND SECTION === */
+    .resend-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.75rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.875rem;
+    }
+    #resend-btn {
+        background: none;
+        border: none;
+        color: var(--accent-color);
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 0.875rem;
+        padding: 0;
+        transition: opacity 0.2s;
+        text-decoration: none;
+    }
+    #resend-btn:disabled {
+        color: var(--text-secondary);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    #countdown-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+    #countdown-ring {
+        width: 18px; height: 18px;
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #countdown-ring svg {
+        position: absolute;
+        top: 0; left: 0;
+        transform: rotate(-90deg);
+    }
+    #countdown-ring circle {
+        fill: none;
+        stroke: var(--accent-color);
+        stroke-width: 2.5;
+        stroke-dasharray: 44;
+        stroke-dashoffset: 0;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1s linear;
+    }
+    #countdown-num {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: var(--accent-color);
+        position: relative;
+        z-index: 1;
+        line-height: 1;
+    }
+
+    /* === TOAST NOTIFICATION === */
+    #toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(80px);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+        opacity: 0;
+        z-index: 9999;
+        white-space: nowrap;
+        max-width: 90vw;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    #toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    #toast.success { border-color: #22c55e; color: #15803d; }
+    #toast.error   { border-color: #ef4444; color: #dc2626; }
+
+    /* === PROGRESS DOTS (step indicator) === */
+    .progress-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin-bottom: 2rem;
+    }
+    .step-dot {
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 800;
+    }
+    .step-dot.done { background: #22c55e; color: white; }
+    .step-dot.active { background: var(--accent-color); color: white; box-shadow: 0 0 0 4px rgba(24,119,242,0.18); }
+    .step-dot.pending { background: var(--border-color); color: var(--text-secondary); }
+    .step-line { width: 48px; height: 2px; background: var(--border-color); }
+    .step-line.done { background: #22c55e; }
 </style>
 
-<div style="min-height: calc(100vh - 70px); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; background: var(--bg-secondary);">
-    <div style="max-width: 450px; width: 100%;">
-        <!-- OTP Card -->
-        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center;">
-            <div style="margin-bottom: 2rem;">
-                <div style="width: 64px; height: 64px; margin: 0 auto 1.25rem; background: linear-gradient(135deg, var(--accent-color), #58a6ff); border-radius: 16px; display: flex; align-items: center; justify-content: center; transform: rotate(-10deg); box-shadow: 0 8px 18px rgba(24, 119, 242, 0.2);">
-                    <i class="fas fa-key" style="color: white; font-size: 1.5rem; transform: rotate(10deg);"></i>
+<!-- Toast Notification -->
+<div id="toast"><span id="toast-icon"></span><span id="toast-msg"></span></div>
+
+<!-- Hidden form for actual submission -->
+<form id="otp-form" method="post" novalidate style="display:none;">
+    {% csrf_token %}
+    {{ form.otp }}
+</form>
+
+<div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; background:var(--bg-primary);">
+    <div style="max-width:460px; width:100%;">
+
+        <!-- Verify Card -->
+        <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:20px; padding:2.5rem; box-shadow:0 12px 40px rgba(0,0,0,0.1); text-align:center;">
+
+            <!-- Icon -->
+            <div style="margin-bottom:1.75rem;">
+                <div style="width:72px; height:72px; margin:0 auto 1.25rem; background:linear-gradient(135deg,var(--accent-color),#58a6ff); border-radius:20px; display:flex; align-items:center; justify-content:center; transform:rotate(-8deg); box-shadow:0 10px 28px rgba(24,119,242,0.3);">
+                    <i class="fas fa-shield-alt" style="color:white; font-size:1.75rem; transform:rotate(8deg);"></i>
                 </div>
-                <h1 style="color: var(--text-primary); font-size: 1.85rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.025em;">Verify Your Email</h1>
-                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">
-                    Humne aapke email <strong style="color: var(--text-primary);">{{ user.email }}</strong> par ek 6-digit OTP bheja hai.
+                <h1 style="color:var(--text-primary); font-size:1.85rem; font-weight:800; margin-bottom:0.5rem; letter-spacing:-0.03em;">Verify Your Email</h1>
+                <p style="color:var(--text-secondary); font-size:0.9rem; line-height:1.6; margin:0;">
+                    Humne ek <strong style="color:var(--text-primary);">6-digit OTP</strong> bheja hai<br>
+                    {% if user.email %}
+                    <strong style="color:var(--accent-color);">{{ user.email }}</strong> par
+                    {% else %}
+                    aapke registered email par
+                    {% endif %}
                 </p>
             </div>
 
-            <form id="otp-form" method="post" novalidate>
-                {% csrf_token %}
-                
-                <div style="margin-bottom: 1.5rem;">
-                    {{ form.otp }}
-                    {% if form.otp.errors %}
-                        {% for error in form.otp.errors %}
-                            <p style="color: #ef4444; font-size: 0.85rem; margin-top: 0.5rem;">{{ error }}</p>
-                        {% endfor %}
-                    {% endif %}
+            <!-- Step Indicator -->
+            <div class="progress-steps">
+                <div class="step-dot done"><i class="fas fa-check" style="font-size:0.65rem;"></i></div>
+                <div class="step-line done"></div>
+                <div class="step-dot active">2</div>
+                <div class="step-line"></div>
+                <div class="step-dot pending">3</div>
+            </div>
+            <p style="color:var(--text-secondary); font-size:0.75rem; margin-top:-1rem; margin-bottom:1.75rem; letter-spacing:0.02em;">
+                Signup ✓ &nbsp;→&nbsp; <strong style="color:var(--accent-color);">Verify Email</strong> &nbsp;→&nbsp; Start Exploring
+            </p>
+
+            <!-- 6 OTP Digit Boxes -->
+            <div class="otp-inputs" id="otp-boxes">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" autocomplete="one-time-code" id="d0" aria-label="OTP digit 1">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" id="d1" aria-label="OTP digit 2">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" id="d2" aria-label="OTP digit 3">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" id="d3" aria-label="OTP digit 4">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" id="d4" aria-label="OTP digit 5">
+                <input class="otp-digit" type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" id="d5" aria-label="OTP digit 6">
+            </div>
+
+            <!-- Form errors (from Django) -->
+            {% if form.otp.errors %}
+                <div style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:0.75rem 1rem; border-radius:10px; margin-bottom:1.25rem; font-size:0.875rem; text-align:left;">
+                    {% for error in form.otp.errors %}⚠ {{ error }}{% endfor %}
                 </div>
+            {% endif %}
 
-                <button type="submit" style="width: 100%; padding: 1rem; background: var(--accent-color); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-                    Verify Now
-                </button>
-            </form>
+            <!-- Django messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="padding:0.75rem 1rem; border-radius:10px; margin-bottom:1.25rem; font-size:0.875rem; text-align:left;
+                        {% if message.tags == 'error' %}background:#fef2f2;border:1px solid #fecaca;color:#dc2626;
+                        {% else %}background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
 
-            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
-                <span style="color: var(--text-secondary);">Didn't receive code?</span>
-                <a href="{% url 'accounts:resend_otp' %}" style="color: var(--accent-color); text-decoration: none; font-weight: 600; transition: all 0.2s;">
-                    Resend OTP?
-                </a>
+            <!-- Verify Button -->
+            <button type="button" id="verify-btn" disabled>
+                <div class="btn-spinner"></div>
+                <span id="verify-btn-text">Enter OTP to Continue</span>
+            </button>
+
+            <!-- Resend Section -->
+            <div class="resend-section">
+                <span style="color:var(--text-secondary);">Didn't receive the code?</span>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span id="countdown-badge" style="display:none;">
+                        <span id="countdown-ring">
+                            <svg width="18" height="18" viewBox="0 0 18 18">
+                                <circle cx="9" cy="9" r="7" />
+                            </svg>
+                            <span id="countdown-num"></span>
+                        </span>
+                        <span id="countdown-text"></span>
+                    </span>
+                    <button id="resend-btn" type="button">Resend OTP</button>
+                </div>
             </div>
         </div>
+
+        <!-- Help text -->
+        <p style="text-align:center; color:var(--text-secondary); font-size:0.78rem; margin-top:1.25rem; line-height:1.5;">
+            💡 OTP aane mein 1–2 min lag sakte hain. Spam folder bhi check karein.
+        </p>
     </div>
 </div>
 
 <script>
-    // AUTO-VERIFY FEATURE
-    const otpInput = document.querySelector('input[name="otp"]');
-    const otpForm = document.getElementById('otp-form');
+// =====================================================================
+// OTP 6-DIGIT BOX LOGIC
+// =====================================================================
+const digits   = Array.from(document.querySelectorAll('.otp-digit'));
+const otpInput = document.querySelector('#id_otp') || document.querySelector('input[name="otp"]');
+const otpForm  = document.getElementById('otp-form');
+const verifyBtn = document.getElementById('verify-btn');
+const verifyBtnText = document.getElementById('verify-btn-text');
 
-    if (otpInput) {
-        // Clear placeholder class to make input style consistent
-        otpInput.className = '';
+function getOtpValue() {
+    return digits.map(d => d.value).join('');
+}
+
+function updateVerifyBtn() {
+    const val = getOtpValue();
+    const complete = val.length === 6 && /^\d{6}$/.test(val);
+    verifyBtn.disabled = !complete;
+    verifyBtnText.textContent = complete ? '✓ Verify Now' : 'Enter OTP to Continue';
+    
+    digits.forEach((d, i) => {
+        d.classList.toggle('filled', d.value !== '');
+    });
+}
+
+function focusNext(index) {
+    if (index < digits.length - 1) digits[index + 1].focus();
+}
+function focusPrev(index) {
+    if (index > 0) digits[index - 1].focus();
+}
+
+// Input handling
+digits.forEach((input, i) => {
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace') {
+            if (this.value === '') {
+                focusPrev(i);
+            } else {
+                this.value = '';
+                updateVerifyBtn();
+            }
+            e.preventDefault();
+        } else if (e.key === 'ArrowLeft') { focusPrev(i); e.preventDefault(); }
+        else if (e.key === 'ArrowRight') { focusNext(i); e.preventDefault(); }
+        else if (e.key === 'Enter') {
+            if (getOtpValue().length === 6) submitOtp();
+        }
+    });
+
+    input.addEventListener('input', function(e) {
+        // Only keep last digit if multiple chars typed
+        const cleaned = this.value.replace(/\D/g, '').slice(-1);
+        this.value = cleaned;
+        updateVerifyBtn();
+        if (cleaned) focusNext(i);
+    });
+
+    // Handle paste on any box
+    input.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+        if (pasted.length >= 6) {
+            digits.forEach((d, idx) => {
+                d.value = pasted[idx] || '';
+                d.classList.toggle('filled', d.value !== '');
+            });
+            digits[5].focus();
+            updateVerifyBtn();
+            // Auto submit after paste if complete
+            setTimeout(() => {
+                if (getOtpValue().length === 6) submitOtp();
+            }, 300);
+        }
+    });
+});
+
+// Auto-focus first box
+digits[0].focus();
+
+// === SUBMIT ===
+function submitOtp() {
+    const val = getOtpValue();
+    if (val.length !== 6 || !/^\d{6}$/.test(val)) return;
+
+    // Success animation
+    digits.forEach(d => d.classList.add('success'));
+    verifyBtn.classList.add('loading');
+    verifyBtnText.textContent = 'Verifying…';
+
+    // Set hidden form value and submit
+    if (otpInput) otpInput.value = val;
+    
+    setTimeout(() => otpForm.submit(), 350);
+}
+
+verifyBtn.addEventListener('click', submitOtp);
+
+// =====================================================================
+// RESEND OTP — AJAX + 60s COUNTDOWN
+// =====================================================================
+const resendBtn = document.getElementById('resend-btn');
+const countdownBadge = document.getElementById('countdown-badge');
+const countdownRingCircle = document.querySelector('#countdown-ring circle');
+const countdownNum = document.getElementById('countdown-num');
+const countdownText = document.getElementById('countdown-text');
+
+const COUNTDOWN_SECS = 60;
+const RING_CIRCUMFERENCE = 44; // 2 * π * r = 2 * π * 7 ≈ 44
+
+let countdownTimer = null;
+let resendUrl = "{% url 'accounts:resend_otp' %}";
+
+function startCountdown() {
+    let remaining = COUNTDOWN_SECS;
+    resendBtn.disabled = true;
+    countdownBadge.style.display = 'inline-flex';
+
+    function tick() {
+        countdownNum.textContent = remaining;
+        countdownText.textContent = `s`;
         
-        otpInput.addEventListener('input', function() {
-            // Remove non-numeric chars
-            this.value = this.value.replace(/[^0-9]/g, '');
-            
-            // Submit form automatically if 6 digits are typed
-            if (this.value.length === 6) {
-                otpInput.disabled = true; 
-                otpInput.style.opacity = '0.5';
-                otpForm.submit();
+        // Ring animation
+        const offset = RING_CIRCUMFERENCE * (1 - remaining / COUNTDOWN_SECS);
+        countdownRingCircle.style.strokeDashoffset = offset;
+
+        if (remaining <= 0) {
+            clearInterval(countdownTimer);
+            resendBtn.disabled = false;
+            countdownBadge.style.display = 'none';
+        }
+        remaining--;
+    }
+    tick();
+    countdownTimer = setInterval(tick, 1000);
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-msg');
+    const toastIcon = document.getElementById('toast-icon');
+
+    toast.className = `show ${type}`;
+    toastIcon.textContent = type === 'success' ? '✅' : '❌';
+    toastMsg.textContent = message;
+
+    setTimeout(() => { toast.classList.remove('show'); }, 3500);
+}
+
+resendBtn.addEventListener('click', async function() {
+    resendBtn.textContent = 'Sending…';
+    resendBtn.disabled = true;
+
+    try {
+        const response = await fetch(resendUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
             }
         });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast(data.message || 'OTP bhej diya gaya!', 'success');
+            // Clear all digit boxes
+            digits.forEach(d => { d.value = ''; d.classList.remove('filled', 'success'); });
+            digits[0].focus();
+            updateVerifyBtn();
+        } else {
+            showToast(data.message || 'Error aaya, dobara try karein.', 'error');
+            resendBtn.disabled = false;
+        }
+    } catch (err) {
+        showToast('Network error. Thodi der baad try karein.', 'error');
+        resendBtn.disabled = false;
     }
+
+    resendBtn.textContent = 'Resend OTP';
+    startCountdown();
+});
+
+// Start countdown on page load (assuming OTP was just sent)
+startCountdown();
+
+// =====================================================================
+// SHAKE ANIMATION on form errors (Django POST errors)
+// =====================================================================
+{% if form.otp.errors %}
+digits.forEach(d => {
+    d.classList.add('shake');
+    d.value = '';
+});
+setTimeout(() => digits.forEach(d => d.classList.remove('shake')), 500);
+digits[0].focus();
+{% endif %}
 </script>
 {% endblock %}
