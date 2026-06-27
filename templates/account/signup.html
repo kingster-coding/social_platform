@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Create Account — Social Platform{% endblock %}
+{% block title %}Create Account — GIAR{% endblock %}
 
 {% block content %}
 <style>
@@ -29,7 +30,7 @@
         position: fixed;
         top: -180px; left: -180px;
         width: 500px; height: 500px;
-        background: radial-gradient(circle, rgba(24,119,242,0.15) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(168,0,13,0.12) 0%, transparent 70%);
         border-radius: 50%;
         pointer-events: none;
         z-index: 0;
@@ -39,7 +40,7 @@
         position: fixed;
         bottom: -150px; right: -150px;
         width: 450px; height: 450px;
-        background: radial-gradient(circle, rgba(88,166,255,0.12) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255,77,82,0.10) 0%, transparent 70%);
         border-radius: 50%;
         pointer-events: none;
         z-index: 0;
@@ -78,17 +79,15 @@
        HEADER
     ════════════════════════════════ */
     .reg-logo {
-        width: 62px; height: 62px;
+        width: 72px; height: 72px;
         margin: 0 auto 1.25rem;
-        background: linear-gradient(135deg, var(--accent-color), #58a6ff);
-        border-radius: 18px;
+        border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.6rem;
-        box-shadow: 0 10px 28px rgba(24,119,242,0.35);
-        transform: rotate(-6deg);
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         transition: transform 0.3s ease;
     }
-    .reg-logo:hover { transform: rotate(0deg) scale(1.06); }
+    .reg-logo:hover { transform: scale(1.06); }
 
     .reg-title {
         font-size: 1.9rem; font-weight: 900;
@@ -108,8 +107,8 @@
        INFO BANNER
     ════════════════════════════════ */
     .info-banner {
-        background: linear-gradient(135deg, rgba(24,119,242,0.08), rgba(88,166,255,0.05));
-        border: 1.5px solid rgba(24,119,242,0.22);
+        background: linear-gradient(135deg, rgba(168,0,13,0.08), rgba(255,77,82,0.05));
+        border: 1.5px solid rgba(168,0,13,0.22);
         border-radius: 14px;
         padding: 13px 16px;
         display: flex; align-items: flex-start; gap: 12px;
@@ -117,7 +116,7 @@
     }
     .info-banner-icon {
         width: 34px; height: 34px; flex-shrink: 0;
-        background: linear-gradient(135deg, #1877f2, #58a6ff);
+        background: linear-gradient(135deg, var(--accent-color), #ff6b72);
         border-radius: 9px;
         display: flex; align-items: center; justify-content: center;
         font-size: 15px;
@@ -158,7 +157,7 @@
     }
     .field-wrap input:focus {
         border-color: var(--accent-color);
-        box-shadow: 0 0 0 3.5px rgba(24,119,242,0.14);
+        box-shadow: 0 0 0 3.5px rgba(168,0,13,0.14);
         background: var(--card-bg);
     }
     .field-wrap input.is-error {
@@ -204,8 +203,8 @@
        USERNAME PREVIEW BOX
     ════════════════════════════════ */
     .username-preview-box {
-        background: linear-gradient(135deg, rgba(24,119,242,0.07), rgba(88,166,255,0.04));
-        border: 1.5px dashed rgba(24,119,242,0.35);
+        background: linear-gradient(135deg, rgba(168,0,13,0.07), rgba(255,77,82,0.04));
+        border: 1.5px dashed rgba(168,0,13,0.35);
         border-radius: 14px;
         padding: 14px 18px;
         margin-bottom: 1.2rem;
@@ -214,7 +213,7 @@
     }
     .username-preview-icon {
         width: 38px; height: 38px; flex-shrink: 0;
-        background: linear-gradient(135deg, #1877f2, #58a6ff);
+        background: linear-gradient(135deg, var(--accent-color), #ff6b72);
         border-radius: 10px;
         display: flex; align-items: center; justify-content: center;
         font-size: 1rem; color: white;
@@ -239,13 +238,13 @@
     ════════════════════════════════ */
     .btn-send-otp {
         width: 100%; padding: 1rem;
-        background: linear-gradient(135deg, var(--accent-color), #3b9eff);
+        background: linear-gradient(135deg, var(--accent-color), #ff6b72);
         color: white; border: none; border-radius: 13px;
         font-size: 1rem; font-weight: 800; cursor: pointer;
         display: flex; align-items: center; justify-content: center; gap: 8px;
         letter-spacing: 0.01em;
         transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
-        box-shadow: 0 6px 20px rgba(24,119,242,0.32);
+        box-shadow: 0 6px 20px rgba(168,0,13,0.25);
         margin-top: 0.25rem;
         position: relative; overflow: hidden;
     }
@@ -255,7 +254,7 @@
         background: rgba(255,255,255,0.12);
         opacity: 0; transition: opacity 0.2s;
     }
-    .btn-send-otp:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(24,119,242,0.4); }
+    .btn-send-otp:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(168,0,13,0.35); }
     .btn-send-otp:hover::after { opacity: 1; }
     .btn-send-otp:active { transform: translateY(0); }
     .btn-send-otp.loading { opacity: 0.75; pointer-events: none; }
@@ -279,9 +278,9 @@
     .otp-header {
         text-align: center; margin-bottom: 1.5rem;
         padding: 1.25rem 1rem;
-        background: linear-gradient(135deg, rgba(24,119,242,0.07), rgba(88,166,255,0.04));
+        background: linear-gradient(135deg, rgba(168,0,13,0.07), rgba(255,77,82,0.04));
         border-radius: 14px;
-        border: 1px solid rgba(24,119,242,0.14);
+        border: 1px solid rgba(168,0,13,0.14);
     }
     .otp-header-icon { font-size: 2.2rem; margin-bottom: 0.5rem; display: block; }
     .otp-header-title { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px; }
@@ -307,12 +306,12 @@
     }
     .otp-box:focus {
         border-color: var(--accent-color);
-        box-shadow: 0 0 0 3.5px rgba(24,119,242,0.15);
+        box-shadow: 0 0 0 3.5px rgba(168,0,13,0.12);
         transform: scale(1.06);
     }
     .otp-box.filled {
         border-color: var(--accent-color);
-        background: rgba(24,119,242,0.06);
+        background: rgba(168,0,13,0.05);
         animation: popIn 0.18s ease;
     }
     @keyframes popIn {
@@ -361,7 +360,7 @@
         padding: 4px 8px; border-radius: 6px;
         transition: background 0.2s;
     }
-    .resend-btn:hover { background: rgba(24,119,242,0.08); }
+    .resend-btn:hover { background: rgba(168,0,13,0.06); }
     .resend-btn:disabled { color: var(--text-secondary); cursor: not-allowed; }
     .resend-timer { color: var(--text-secondary); font-size: 0.82rem; font-weight: 600; }
 
@@ -394,7 +393,7 @@
     }
     .reg-login-link:hover {
         border-color: var(--accent-color);
-        background: rgba(24,119,242,0.05);
+        background: rgba(168,0,13,0.04);
     }
     .reg-footer-note {
         text-align: center; color: var(--text-secondary);
@@ -419,8 +418,10 @@
 
             <!-- ── Header ── -->
             <div style="text-align:center;">
-                <div class="reg-logo">🚀</div>
-                <h1 class="reg-title">Join Us Today</h1>
+                <div class="reg-logo">
+                    <img src="{% static 'images/logo.png' %}" alt="GIAR Logo" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <h1 class="reg-title">Join GIAR Today</h1>
                 <p class="reg-sub">Connect, share, and grow with your community.</p>
             </div>
 
@@ -904,6 +905,11 @@ document.getElementById('reg-form').addEventListener('submit', async function(e)
         const data = await resp.json();
 
         if (data.success) {
+            if (data.redirect) {
+                btn.querySelector('.btn-text').textContent = '🎉 Account Created! Redirecting…';
+                window.location.href = data.redirect;
+                return;
+            }
             // Show OTP phase
             document.getElementById('phase1').style.display = 'none';
             const otpPhase = document.getElementById('otp-phase');

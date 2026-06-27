@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Log In - Social Platform{% endblock %}
+{% block title %}Log In - GIAR{% endblock %}
 
 {% block content %}
 <style>
@@ -13,7 +14,7 @@
         font-size: 1rem; background: var(--bg-primary); color: var(--text-primary); transition: all 0.2s ease;
     }
     input:focus {
-        outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(0, 125, 255, 0.1);
+        outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(168, 0, 13, 0.1);
     }
 </style>
 
@@ -22,11 +23,11 @@
         <!-- Auth Card -->
         <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
             <div style="text-align: center; margin-bottom: 2rem;">
-                <div style="width: 64px; height: 64px; margin: 0 auto 1.25rem; background: linear-gradient(135deg, var(--accent-color), #58a6ff); border-radius: 16px; display: flex; align-items: center; justify-content: center; transform: rotate(-10deg);">
-                    <i class="fas fa-sign-in-alt" style="color: white; font-size: 1.5rem; transform: rotate(10deg);"></i>
+                <div style="width: 72px; height: 72px; margin: 0 auto 1.25rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <img src="{% static 'images/logo.png' %}" alt="GIAR Logo" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
                 <h1 style="color: var(--text-primary); font-size: 1.85rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.025em;">Welcome Back</h1>
-                <p style="color: var(--text-secondary); font-size: 0.95rem;">Log in to your social account.</p>
+                <p style="color: var(--text-secondary); font-size: 0.95rem;">Log in to your GIAR account.</p>
             </div>
 
             <form method="post" novalidate>

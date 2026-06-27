@@ -55,106 +55,153 @@ def register_send_otp(request):
 
     cd = form.cleaned_data
 
-    # Generate 6-digit OTP
-    otp_code = str(random.randint(100000, 999999))
-    otp_expiry = (timezone.now() + timedelta(minutes=10)).isoformat()
-
-    # Store in session (password hashed, never plain text)
-    request.session['reg_data'] = {
-        'first_name': cd['first_name'],
-        'last_name': cd['last_name'],
-        'email': cd['email'],
-        'phone_number': cd['phone_number'],
-        'password_hash': make_password(cd['password1']),
-        'otp': otp_code,
-        'otp_expiry': otp_expiry,
-    }
-    request.session.modified = True
-
-    # Send OTP email
-    from django.conf import settings
-    from django.core.mail import EmailMultiAlternatives
-    full_name = f"{cd['first_name']} {cd['last_name']}"
-    masked_email = cd['email'][:3] + '***@' + cd['email'].split('@')[1]
-
-    text_content = (
-        f"Hi {full_name},\n\n"
-        f"Your OTP for account verification is: {otp_code}\n\n"
-        f"This OTP is valid for 10 minutes.\n\n"
-        f"If you did not request this, please ignore this email.\n\n"
-        f"— Social Platform Team"
-    )
-
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <body style="margin:0;padding:0;background:#f4f6fb;font-family:'Segoe UI',Arial,sans-serif;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fb;padding:40px 0;">
-        <tr><td align="center">
-          <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-            <tr>
-              <td style="background:linear-gradient(135deg,#1877f2,#58a6ff);padding:32px;text-align:center;">
-                <div style="font-size:40px;margin-bottom:12px;">🔐</div>
-                <h1 style="color:#ffffff;font-size:22px;font-weight:800;margin:0;">Verify Your Account</h1>
-                <p style="color:rgba(255,255,255,0.8);font-size:14px;margin:6px 0 0;">Social Platform</p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:36px 40px;">
-                <p style="color:#374151;font-size:16px;margin:0 0 8px;">Hi <strong>{full_name}</strong>,</p>
-                <p style="color:#6b7280;font-size:14px;margin:0 0 28px;line-height:1.6;">
-                  Aapne Social Platform par account verify karne ki request ki hai. Neeche diya gaya OTP use karein:
-                </p>
-                <div style="background:#f0f7ff;border:2px dashed #1877f2;border-radius:12px;padding:24px;text-align:center;margin:0 0 28px;">
-                  <p style="color:#6b7280;font-size:12px;font-weight:600;letter-spacing:1px;margin:0 0 8px;text-transform:uppercase;">Your OTP</p>
-                  <div style="font-size:42px;font-weight:800;letter-spacing:12px;color:#1877f2;font-family:'Courier New',monospace;">{otp_code}</div>
-                  <p style="color:#ef4444;font-size:12px;margin:10px 0 0;">⏱ Valid for 10 minutes only</p>
-                </div>
-                <p style="color:#9ca3af;font-size:12px;margin:0;line-height:1.6;">
-                  Agar aapne yeh request nahi ki hai, toh is email ko ignore kar dein.
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #e5e7eb;">
-                <p style="color:#9ca3af;font-size:12px;margin:0;">© 2025 Social Platform. All rights reserved.</p>
-              </td>
-            </tr>
-          </table>
-        </td></tr>
-      </table>
-    </body>
-    </html>
-    """
-
-    email_sent = False
-    email_error = None
+    # -------------------------------------------------------------
+    # OTP BYPASS / DIRECT REGISTRATION FOR TESTING
+    # -------------------------------------------------------------
     try:
-        email_msg = EmailMultiAlternatives(
-            subject='🔐 Verify Your Account — OTP',
-            body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[cd['email']]
+        full_name = f"{cd['first_name']} {cd['last_name']}"
+        auto_username = User.generate_auto_username(
+            full_name=full_name,
+            email=cd['email'],
+            phone=cd['phone_number']
         )
-        email_msg.attach_alternative(html_content, "text/html")
-        email_msg.send(fail_silently=False)
-        email_sent = True
+
+        user = User(
+            username=auto_username,
+            email=cd['email'],
+            first_name=cd['first_name'],
+            last_name=cd['last_name'],
+            phone_number=cd['phone_number'],
+            email_verified=True,  # Bypass verification
+            username_locked=True,
+            coins=0,
+        )
+        user.password = make_password(cd['password1'])
+        user.save()
+
+        # Create linked Profile
+        from .models import Profile
+        Profile.objects.get_or_create(user=user)
+
+        # Log them in
+        from django.contrib.auth import login as auth_login
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        auth_login(request, user)
+
+        return JsonResponse({
+            'success': True,
+            'redirect': '/feed/'
+        })
+
     except Exception as e:
         import traceback
-        email_error = str(e)
         traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': f'Account create karne mein dikkat hui: {str(e)}'
+        }, status=500)
 
-    response_data = {
-        'success': True,
-        'masked_email': masked_email,
-        'testing_otp': otp_code,
-    }
-    if email_sent:
-        response_data['message'] = f'OTP {masked_email} par bhej diya gaya hai.'
-    else:
-        response_data['message'] = f'Email sending failed: {email_error}. [TESTING BYPASS ACTIVE: OTP is {otp_code}]'
+    # ORIGINAL OTP LOGIC (COMMENTED OUT FOR TESTING / BYPASS)
+    # Generate 6-digit OTP
+    # otp_code = str(random.randint(100000, 999999))
+    # otp_expiry = (timezone.now() + timedelta(minutes=10)).isoformat()
 
-    return JsonResponse(response_data)
+    # Store in session (password hashed, never plain text)
+    # request.session['reg_data'] = {
+    #     'first_name': cd['first_name'],
+    #     'last_name': cd['last_name'],
+    #     'email': cd['email'],
+    #     'phone_number': cd['phone_number'],
+    #     'password_hash': make_password(cd['password1']),
+    #     'otp': otp_code,
+    #     'otp_expiry': otp_expiry,
+    # }
+    # request.session.modified = True
+
+    # Send OTP email
+    # from django.conf import settings
+    # from django.core.mail import EmailMultiAlternatives
+    # full_name = f"{cd['first_name']} {cd['last_name']}"
+    # masked_email = cd['email'][:3] + '***@' + cd['email'].split('@')[1]
+
+    # text_content = (
+    #     f"Hi {full_name},\n\n"
+    #     f"Your OTP for account verification is: {otp_code}\n\n"
+    #     f"This OTP is valid for 10 minutes.\n\n"
+    #     f"If you did not request this, please ignore this email.\n\n"
+    #     f"— Social Platform Team"
+    # )
+
+    # html_content = f"""
+    # <!DOCTYPE html>
+    # <html>
+    # <body style="margin:0;padding:0;background:#f4f6fb;font-family:'Segoe UI',Arial,sans-serif;">
+    #   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fb;padding:40px 0;">
+    #     <tr><td align="center">
+    #       <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    #         <tr>
+    #           <td style="background:linear-gradient(135deg,#1877f2,#58a6ff);padding:32px;text-align:center;">
+    #             <div style="font-size:40px;margin-bottom:12px;">🔐</div>
+    #             <h1 style="color:#ffffff;font-size:22px;font-weight:800;margin:0;">Verify Your Account</h1>
+    #             <p style="color:rgba(255,255,255,0.8);font-size:14px;margin:6px 0 0;">Social Platform</p>
+    #           </td>
+    #         </tr>
+    #         <tr>
+    #           <td style="padding:36px 40px;">
+    #             <p style="color:#374151;font-size:16px;margin:0 0 8px;">Hi <strong>{full_name}</strong>,</p>
+    #             <p style="color:#6b7280;font-size:14px;margin:0 0 28px;line-height:1.6;">
+    #               Aapne Social Platform par account verify karne ki request ki hai. Neeche diya gaya OTP use karein:
+    #             </p>
+    #             <div style="background:#f0f7ff;border:2px dashed #1877f2;border-radius:12px;padding:24px;text-align:center;margin:0 0 28px;">
+    #               <p style="color:#6b7280;font-size:12px;font-weight:600;letter-spacing:1px;margin:0 0 8px;text-transform:uppercase;">Your OTP</p>
+    #               <div style="font-size:42px;font-weight:800;letter-spacing:12px;color:#1877f2;font-family:'Courier New',monospace;">{otp_code}</div>
+    #               <p style="color:#ef4444;font-size:12px;margin:10px 0 0;">⏱ Valid for 10 minutes only</p>
+    #             </div>
+    #             <p style="color:#9ca3af;font-size:12px;margin:0;line-height:1.6;">
+    #               Agar aapne yeh request nahi ki hai, toh is email ko ignore kar dein.
+    #             </p>
+    #           </td>
+    #         </tr>
+    #         <tr>
+    #           <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #e5e7eb;">
+    #             <p style="color:#9ca3af;font-size:12px;margin:0;">© 2025 Social Platform. All rights reserved.</p>
+    #           </td>
+    #         </tr>
+    #       </table>
+    #     </td></tr>
+    #   </table>
+    # </body>
+    # </html>
+    # """
+
+    # email_sent = False
+    # email_error = None
+    # try:
+    #     email_msg = EmailMultiAlternatives(
+    #         subject='🔐 Verify Your Account — OTP',
+    #         body=text_content,
+    #         from_email=settings.DEFAULT_FROM_EMAIL,
+    #         to=[cd['email']]
+    #     )
+    #     email_msg.attach_alternative(html_content, "text/html")
+    #     email_msg.send(fail_silently=False)
+    #     email_sent = True
+    # except Exception as e:
+    #     import traceback
+    #     email_error = str(e)
+    #     traceback.print_exc()
+
+    # response_data = {
+    #     'success': True,
+    #     'masked_email': masked_email,
+    #     'testing_otp': otp_code,
+    # }
+    # if email_sent:
+    #     response_data['message'] = f'OTP {masked_email} par bhej diya gaya hai.'
+    # else:
+    #     response_data['message'] = f'Email sending failed: {email_error}. [TESTING BYPASS ACTIVE: OTP is {otp_code}]'
+
+    # return JsonResponse(response_data)
 
 
 def register_verify_otp(request):
