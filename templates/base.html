@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,600&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -354,11 +355,15 @@
     <nav class="navbar">
         <div class="navbar-shell">
             <div>
-                <a href="{% url 'feed:feed' %}" class="brand-link">
+                 <a href="{% url 'feed:feed' %}" class="brand-link" style="text-decoration: none;">
                     <span class="brand-mark">
                         <img src="{% static 'images/logo.png' %}" alt="GIAR Logo" style="width: 100%; height: 100%; object-fit: cover;">
                     </span>
-                    <span style="letter-spacing: -0.02em;">Research<span style="font-weight: 400; color: var(--text-primary); margin-left: 6px;">Media</span></span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.2rem; line-height: 1;">
+                        <span style="font-family: 'Playfair Display', serif; font-style: italic; font-weight: 600; font-size: 1.65rem; color: var(--accent-color); text-transform: none; padding-bottom: 0.1rem;">Research</span>
+                        <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-primary); margin-left: 0.25rem;">Media</span>
+                        <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 0.75rem; color: var(--accent-color); margin-left: -0.1rem;">•</span>
+                    </span>
                 </a>
             </div>
 
