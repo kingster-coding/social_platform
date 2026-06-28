@@ -101,8 +101,8 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap; width: 100%;">
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; flex: 1 1 auto;">
                             <label style="cursor: pointer; padding: 0.65rem 0.9rem; background: var(--bg-secondary); border-radius: 10px; color: var(--text-primary);">
                                 <i class="fas fa-image" style="margin-right: 0.4rem; color: #16a34a;"></i> Photo
                                 {{ form.image }}
@@ -113,7 +113,7 @@
                             </label>
                         </div>
 
-                        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; flex: 1 1 auto;">
                             {{ form.privacy }}
                             <button type="submit" style="padding: 0.72rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
                                 Post
@@ -146,9 +146,9 @@
 
         <aside class="sticky-aside">
             <!-- Trending Hashtags -->
-            <div x-data="{ trending: [] }" x-init="fetch('{% url 'feed:trending_hashtags' %}')
+            <div x-data="{ trending: [], isLoading: true }" x-init="fetch('{% url 'feed:trending_hashtags' %}')
                 .then(response => response.json())
-                .then(data => trending = data.trending)">
+                .then(data => { trending = data.trending; isLoading = false; })">
                 <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1rem;">
                     <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.1rem; font-weight: 700;">
                         <i class="fas fa-fire" style="color: #f59e0b; margin-right: 0.5rem;"></i> Trending Hashtags
@@ -163,7 +163,8 @@
                         </a>
                     </template>
 
-                    <p x-show="trending.length === 0" style="color: var(--text-secondary); font-size: 0.9rem;">Loading...</p>
+                    <p x-show="isLoading" style="color: var(--text-secondary); font-size: 0.9rem;">Loading...</p>
+                    <p x-show="!isLoading && trending.length === 0" style="color: var(--text-secondary); font-size: 0.9rem;">No trending hashtags right now.</p>
                 </div>
             </div>
 

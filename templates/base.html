@@ -13,6 +13,11 @@
 
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
+    <style>
+        @media (min-width: 769px) {
+            .mobile-only-menu { display: none !important; }
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', openChat: false }"
@@ -122,10 +127,10 @@
 
             <div class="nav-right">
                 {% if user.is_authenticated %}
-                    <button @click="openChat = !openChat" class="nav-icon-button" title="Chat">
+                    <button @click="openChat = !openChat" class="nav-icon-button desktop-only" title="Chat">
                         <i class="fas fa-envelope"></i>
                     </button>
-                    <a href="{% url 'notifications:list' %}" class="nav-icon-button" title="Notifications">
+                    <a href="{% url 'notifications:list' %}" class="nav-icon-button desktop-only" title="Notifications">
                         <i class="fas fa-bell"></i>
                     </a>
                 {% endif %}
@@ -158,6 +163,21 @@
                          x-transition:enter="fade-in"
                          style="position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; min-width: 220px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000;">
                         {% if user.is_authenticated %}
+                            <div class="mobile-only-menu" style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+                                <a href="{% url 'groups:list' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none;">
+                                    <i class="fas fa-user-group" style="width: 20px;"></i> Groups
+                                </a>
+                                <a href="{% url 'jobs:job_list' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none;">
+                                    <i class="fas fa-briefcase" style="width: 20px;"></i> Jobs
+                                </a>
+                                <a href="{% url 'research:paper_list' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none;">
+                                    <i class="fas fa-microscope" style="width: 20px;"></i> Research
+                                </a>
+                                <a href="{% url 'webinars:list' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none;">
+                                    <i class="fas fa-video" style="width: 20px;"></i> Webinars
+                                </a>
+                            </div>
+
                             <a href="{% url 'accounts:profile' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border-color);">
                                 <i class="fas fa-user"></i> Profile
                             </a>
