@@ -4,18 +4,18 @@
 {% block title %}Groups - Social Platform{% endblock %}
 
 {% block content %}
-<div style="max-width: 1200px; margin: 2rem auto;">
+<div class="container" style="margin-top: 1rem; margin-bottom: 2rem;">
     
     <!-- Header -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h1 style="color: var(--text-primary);">
+    <div class="flex-wrap" style="justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem;">
+        <h1 style="color: var(--text-primary); font-size: clamp(1.5rem, 4vw, 2rem);">
             <i class="fas fa-users"></i> Discover Groups
         </h1>
-        <div>
-            <a href="{% url 'groups:my_groups' %}" style="margin-right: 1rem; color: var(--text-primary); text-decoration: none;">
+        <div class="flex-wrap" style="gap: 1rem; align-items: center;">
+            <a href="{% url 'groups:my_groups' %}" style="color: var(--text-primary); text-decoration: none; font-weight: 600;">
                 <i class="fas fa-user-friends"></i> My Groups
             </a>
-            <a href="{% url 'groups:create' %}" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px;">
+            <a href="{% url 'groups:create' %}" style="padding: 0.6rem 1.2rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
                 <i class="fas fa-plus"></i> Create Group
             </a>
         </div>

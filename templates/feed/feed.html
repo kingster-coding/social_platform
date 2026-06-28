@@ -5,8 +5,8 @@
 {% block title %}Feed - Social Platform{% endblock %}
 
 {% block content %}
-<div style="max-width: 1120px; margin: 1.5rem auto; padding: 0 1rem;">
-    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1.5rem; align-items: start;">
+<div class="container">
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1.5rem; align-items: start;" class="feed-grid-layout">
 
         <div>
             <!-- Stories Widget (Alpine.js) -->
@@ -144,7 +144,7 @@
             </div>
         </div>
 
-        <aside style="position: sticky; top: 96px; display: flex; flex-direction: column; gap: 1.5rem;">
+        <aside class="sticky-aside">
             <!-- Trending Hashtags -->
             <div x-data="{ trending: [] }" x-init="fetch('{% url 'feed:trending_hashtags' %}')
                 .then(response => response.json())
@@ -222,16 +222,5 @@
     input[type="file"] {
         display: none;
     }
-
-    @media (max-width: 992px) {
-        div[style*="grid-template-columns: minmax(0, 1fr) 320px;"] {
-            grid-template-columns: 1fr !important;
-        }
-
-        aside[style*="position: sticky"] {
-            position: static !important;
-            top: auto !important;
-        }
-    }
-    </style>
+</style>
 {% endblock %}

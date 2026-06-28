@@ -4,7 +4,7 @@
 {% block title %}{{ group.name }} - Groups - Social Platform{% endblock %}
 
 {% block content %}
-<div style="max-width: 1100px; margin: 0 auto; padding-bottom: 4rem;">
+<div class="container" style="max-width: 1100px; padding: 0 0 4rem 0;">
     <!-- Cover Photo -->
     <div style="height: 250px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-radius: 0 0 16px 16px; position: relative; overflow: hidden; border: 1px solid var(--border-color);">
         {% if group.cover_image %}
@@ -66,7 +66,7 @@
         </div>
 
         <!-- Detail tabs/sections -->
-        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 2rem; align-items: start;">
+        <div class="group-layout" style="display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 2rem; align-items: start;">
             
             <!-- Left Side: Post Feed & Mod Queue -->
             <div>
@@ -262,6 +262,9 @@
     }
     input[type="file"] {
         display: none;
+    }
+    @media (max-width: 900px) {
+        .group-layout { grid-template-columns: 1fr !important; }
     }
 </style>
 {% endblock %}

@@ -4,20 +4,20 @@
 {% block title %}Notifications - Social Platform{% endblock %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 2rem auto;">
+<div class="container" style="max-width: 800px; margin-top: 1rem; margin-bottom: 2rem;">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h1 style="color: var(--text-primary);">
+    <div class="flex-wrap" style="justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem;">
+        <h1 style="color: var(--text-primary); font-size: clamp(1.5rem, 4vw, 2rem);">
             <i class="fas fa-bell"></i> Notifications
         </h1>
         
-        <div>
-            <a href="{% url 'notifications:preferences' %}" style="margin-right: 1rem; color: var(--text-primary); text-decoration: none;">
+        <div class="flex-wrap" style="gap: 1rem; align-items: center;">
+            <a href="{% url 'notifications:preferences' %}" style="color: var(--text-primary); text-decoration: none; font-weight: 600;">
                 <i class="fas fa-cog"></i> Preferences
             </a>
             <form method="post" action="{% url 'notifications:mark_all_read' %}" style="display: inline;">
                 {% csrf_token %}
-                <button type="submit" style="background: none; border: none; color: var(--accent-color); cursor: pointer;">
+                <button type="submit" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-weight: 600;">
                     <i class="fas fa-check-double"></i> Mark all read
                 </button>
             </form>

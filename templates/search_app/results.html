@@ -4,7 +4,7 @@
 {% block title %}Search: {{ query }} - Social Platform{% endblock %}
 
 {% block content %}
-<div style="max-width: 1000px; margin: 2rem auto;">
+<div class="container" style="max-width: 1000px; margin-top: 1rem; margin-bottom: 2rem;">
     
     <!-- Search Header -->
     <div style="margin-bottom: 2rem;">
@@ -31,7 +31,7 @@
     
     <!-- Tabs -->
     <div style="border-bottom: 1px solid var(--border-color); margin-bottom: 2rem;">
-        <div style="display: flex; gap: 1.5rem;">
+        <div style="display: flex; gap: 1rem; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 0.5rem;">
             <a href="?q={{ query }}&tab=all" 
                style="padding: 0.75rem 0; color: {% if active_tab == 'all' %}var(--accent-color){% else %}var(--text-secondary){% endif %}; text-decoration: none; border-bottom: 2px solid {% if active_tab == 'all' %}var(--accent-color){% else %}transparent{% endif %};">
                 All

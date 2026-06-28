@@ -3,27 +3,27 @@
 {% block title %}Home - Social Platform{% endblock %}
 
 {% block content %}
-<div style="text-align: center; padding: 3rem;">
-    <h1 style="margin-bottom: 1rem; color: var(--accent-color);">
+<div class="container" style="text-align: center; padding: clamp(1.5rem, 5vw, 3rem) 1rem;">
+    <h1 style="margin-bottom: 1rem; color: var(--accent-color); font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.2;">
         🚀 Welcome to Social Platform!
     </h1>
     
     {% if user.is_authenticated %}
-        <p style="margin-bottom: 2rem; color: var(--text-secondary);">
+        <p style="margin-bottom: 1.5rem; color: var(--text-secondary); font-size: clamp(1rem, 2vw, 1.2rem);">
             Welcome back, {{ user.username }}! Your feed is being prepared.
         </p>
-        <p style="color: var(--text-secondary);">
+        <p style="color: var(--text-secondary); font-size: clamp(0.9rem, 2vw, 1.1rem);">
             ⚡ We're building something amazing for you.
         </p>
     {% else %}
-        <p style="margin-bottom: 2rem; color: var(--text-secondary);">
+        <p style="margin-bottom: 2rem; color: var(--text-secondary); font-size: clamp(1rem, 2vw, 1.2rem);">
             Join the community today!
         </p>
-        <div style="display: flex; gap: 1rem; justify-content: center;">
-            <a href="{% url 'account_signup' %}" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px;">
+        <div class="flex-center flex-wrap" style="gap: 1rem;">
+            <a href="{% url 'account_signup' %}" style="padding: 0.75rem 1.5rem; background: var(--accent-color); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; min-width: 140px; transition: opacity 0.2s;">
                 Sign Up
             </a>
-            <a href="{% url 'account_login' %}" style="padding: 0.75rem 1.5rem; background: var(--card-bg); color: var(--accent-color); text-decoration: none; border: 1px solid var(--accent-color); border-radius: 8px;">
+            <a href="{% url 'account_login' %}" style="padding: 0.75rem 1.5rem; background: var(--card-bg); color: var(--accent-color); text-decoration: none; border: 1px solid var(--accent-color); border-radius: 8px; font-weight: 600; min-width: 140px; transition: background-color 0.2s;">
                 Login
             </a>
         </div>
@@ -31,22 +31,24 @@
 </div>
 
 <!-- WHAT: Features preview -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 3rem;">
-    <div style="padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;">
-        <h3>📱 Feed</h3>
-        <p style="color: var(--text-secondary);">Facebook-style posts and stories</p>
-    </div>
-    <div style="padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;">
-        <h3>🎬 Reels</h3>
-        <p style="color: var(--text-secondary);">Short video content</p>
-    </div>
-    <div style="padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;">
-        <h3>📚 Research</h3>
-        <p style="color: var(--text-secondary);">Academic papers</p>
-    </div>
-    <div style="padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;">
-        <h3>💼 Jobs</h3>
-        <p style="color: var(--text-secondary);">Career opportunities</p>
+<div class="container">
+    <div class="responsive-grid" style="margin-top: 2rem; margin-bottom: 3rem;">
+        <div style="padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s;">
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-newspaper" style="color: var(--accent-color);"></i> Feed</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Facebook-style posts and stories</p>
+        </div>
+        <div style="padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s;">
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-clapperboard" style="color: var(--accent-color);"></i> Reels</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Short video content</p>
+        </div>
+        <div style="padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s;">
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-microscope" style="color: var(--accent-color);"></i> Research</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Academic papers</p>
+        </div>
+        <div style="padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s;">
+            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-briefcase" style="color: var(--accent-color);"></i> Jobs</h3>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Career opportunities</p>
+        </div>
     </div>
 </div>
 {% endblock %}
